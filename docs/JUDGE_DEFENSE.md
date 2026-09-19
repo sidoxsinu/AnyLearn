@@ -3,7 +3,7 @@
 Answering rule: **point at a behavior on screen, not a claim.** Each answer ends with "…and I can show that."
 
 ### 1. Why wouldn't I just use ChatGPT?
-You can — as our *engine*. ChatGPT gives you a conversation; AnyLearn gives you a **persistent learning environment**: a versioned concept graph, lessons, quizzes and resources sharing the same IDs; a mastery model; an adaptive roadmap; and a repair loop with changelog and undo. In chat, the learner maintains the structure. Here, the structure maintains itself. *(Show: roadmap map + a quiz changing it.)*
+You can — as our *engine*. ChatGPT gives you a conversation; AnyLearn gives you a **persistent learning environment**: a versioned concept graph, lessons, quizzes and resources sharing the same IDs; a mastery model; an adaptive roadmap; and a repair loop with changelog and undo. In chat, the learner maintains the structure. Here, the structure maintains itself. *(Show on Browser: roadmap canvas → tap a quiz node → canvas updates.)*
 
 ### 2. Can't I just paste your prompt into ChatGPT?
 You'd get the first output. You wouldn't get state: per-concept mastery, misconception-tagged quizzes, deterministic patches, diffs, undo, link-checked resources, or the same course next week. The prompts are ~20% of the product; the **engines around them** are the rest.
@@ -18,7 +18,7 @@ Great for popular topics with expert authors. But they're fixed for the average 
 Search returns pages; it doesn't decide the order, check understanding, or adapt. We *use* search to ground and verify.
 
 ### 6. What if the AI gives incorrect information?
-It can. We reduce and expose risk instead of pretending it's zero: (a) lessons are grounded with sources or flagged `unsourced` with a confidence badge; (b) resources are real, link-checked; (c) any learner can **Report/Fix**; (d) an independent verifier checks each fix and lists the claims it checked; (e) everything is changelogged and undoable. *(Show: a report → verify → diff.)*
+It can. We reduce and expose risk instead of pretending it's zero: (a) lessons are grounded with sources or flagged `unsourced` with a confidence badge; (b) resources are real, link-checked; (c) any learner can **Report/Fix**; (d) an independent verifier checks each fix and lists the claims it checked; (e) everything is changelogged and undoable. *(Show on Browser: a report → verify → diff.)*
 
 ### 7. What makes this personalized?
 Three inputs: a topic-specific **diagnostic** (skips what you know), your **end-goal artifact and hours/week** (shapes scope), and **ongoing per-concept mastery + misconceptions** that rewrite the roadmap. Not just "tone."
@@ -33,7 +33,7 @@ The UI isn't a transcript. The model outputs schema-validated JSON that a determ
 Because the value is in *state and loops* (mastery, patches, changelog, verification) that don't fit a message thread. Compare Notion vs. "a chat about notes."
 
 ### 11. What if the user wants something obscure?
-We (1) search for real material, (2) widen prerequisites, (3) mark lessons `low confidence / unsourced` instead of bluffing, and (4) rely on Report/Fix to improve. Honest limits beat confident nonsense. *(Show: try a niche topic; badges appear.)*
+We (1) search for real material, (2) widen prerequisites, (3) mark lessons `low confidence / unsourced` instead of bluffing, and (4) rely on Report/Fix to improve. Honest limits beat confident nonsense. *(Show on Browser: try a niche topic; badges appear on the roadmap canvas.)*
 
 ### 12. How does AnyLearn know what the learner already understands?
 Diagnostic seeds mastery; every answer updates a per-concept score (`p += α(score − p)`); wrong options carry misconception labels so we know *what* they misunderstand. Inline checkpoints add more signal.
@@ -65,5 +65,5 @@ No auth, DB, multi-user, or human expert review. Quality bounded by model + sour
 ---
 ## Trap questions — short responses
 - **"So it's an LLM wrapper?"** — "The LLM is one stage. Mastery, patch engine, link verification and diffing are ours, and they're why behavior is consistent."
-- **"Show me it isn't pre-baked."** — "Give me any topic." (Have safe mode ready but try live first.)
-- **"Won't ChatGPT ship this?"** — "General assistants are moving toward study modes; our bet is that a purpose-built object model and repair loop wins on trust and continuity. If they do, we'd rather be the layer that works across models."
+- **"Show me it isn't pre-baked."** — "Give me any topic." Clear `localStorage`, refresh, paste your API key, and run. Have preview mode ready but try live first.
+- **"Won't ChatGPT ship this?"** — "General assistants are moving toward study modes; our bet is that a purpose-built native Web object model and repair loop wins on trust and continuity. If they do, we'd rather be the layer that works across models."

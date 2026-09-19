@@ -1,110 +1,122 @@
 # Technical Architecture
 
-## Stack (chosen for speed + fit)
+## Stack (chosen for speed + native Web fit)
+
 | Layer | Choice | Why |
 |---|---|---|
-| Framework | **Next.js (App Router) + TypeScript** | One repo: UI + API routes; fast deploy on Vercel |
-| UI | Tailwind CSS + shadcn/ui + Framer Motion | Polished quickly; motion sells the "adaptation" moments |
-| Roadmap map | **React Flow** (`@xyflow/react`) | Interactive concept/roadmap graph = the visual hook |
-| State | **Zustand** with `persist` (localStorage) | No DB needed; instant resume |
-| AI | Vercel AI SDK (`generateObject`, streaming) + Zod | Schema-validated JSON across providers |
-| LLM | Gemini Flash-class (default), Claude Sonnet-class (fix/verify, optional) | Speed/free tier vs. quality; abstracted behind `llm.ts` |
-| Resources | YouTube Data API v3 + Tavily (or Brave) search | Real links, real metadata |
-| Diagrams | Mermaid (client render) | LLM-authored diagrams cheaply |
-| Diffs | `diff` / custom before-after component | The Report/Fix "wow" |
-| Deploy | Vercel (or local for demo) | Zero infra |
+| Language | **TypeScript 5.10** | Type-safe, built-in schema validation |
+| UI Framework | **React/Next.js 15** | Declarative, smooth animations, App Router |
+| Roadmap graph | **Custom React SVG Canvas** | Interactive DAG map; animates node insertion |
+| State | **Zustand + `localStorage`** | No DB needed; instant resume on relaunch |
+| AI | **Google Generative AI REST API** | Schema-validated JSON across providers |
+| LLM | Gemini Flash-class (default) | Speed/free tier vs. quality; abstracted behind `llmClient.ts` |
+| Resources | YouTube Data API v3 + Web Search | Real links, real metadata |
+| Diagrams | Mermaid via `react-markdown` | LLM-authored diagrams cheaply |
+| Diffs | Custom React `DiffView` | The Report/Fix "wow" moment |
+| Demo | **Desktop Web Browser** | Judge-visible, runs locally |
 
-Optional later: Supabase (Postgres) for accounts and shared verified courses.
+Optional later: Supabase or Firebase for accounts and shared verified courses.
 
-## Repo layout
+---
+
+## Next.js project layout
+
 ```
-anylearn/
-├── docs/
+anylearn-web/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx                  # Goal intake
-│   │   ├── course/[id]/page.tsx      # Roadmap map + progress
-│   │   ├── course/[id]/lesson/[lessonId]/page.tsx
-│   │   └── api/
-│   │       ├── calibrate/route.ts    # diagnostic generation
-│   │       ├── course/route.ts       # SSE: concept graph -> curriculum
-│   │       ├── lesson/route.ts       # lesson + quiz
-│   │       ├── resources/route.ts    # search -> link check -> rerank
-│   │       ├── adapt/route.ts        # RoadmapPatch
-│   │       ├── report/route.ts       # diagnose/fix -> verify -> propagate
-│   │       └── tutor/route.ts
+│   │   ├── layout.tsx              # Root layout & navigation
+│   │   ├── page.tsx                # Landing page
+│   │   ├── goal/page.tsx           # Goal Intake View
+│   │   ├── build/page.tsx          # Pipeline stepper
+│   │   ├── roadmap/page.tsx        # React SVG graph + sidebar
+│   │   ├── lesson/[id]/page.tsx    # Lesson Workspace & Blocks
+│   │   ├── quiz/[lessonId]/page.tsx# Quiz Interface
+│   │   └── report/[lessonId]/page.tsx # Report/Fix Interface
+│   ├── components/
+│   │   ├── BlockRenderer.tsx       # Renders typed Block array
+│   │   ├── RoadmapGraph.tsx        # SVG DAG renderer
+│   │   ├── MasteryRing.tsx         # Circular progress indicator
+│   │   └── ApiKeyModal.tsx         # Secure key entry & Demo mode
 │   ├── lib/
-│   │   ├── llm.ts                    # provider wrapper + retry
-│   │   ├── schemas.ts                # Zod schemas (see AI.md)
-│   │   ├── prompts.ts                # from PROMPTS.md
-│   │   ├── mastery.ts                # update + trigger detection
-│   │   ├── patch.ts                  # applyPatch / invertPatch / validateDag
-│   │   ├── resources.ts              # youtube, search, linkcheck
-│   │   └── fixtures/                 # safe-mode course + cached AI responses
-│   ├── store/course.ts               # Zustand store
-│   └── components/                   # RoadmapMap, LessonView, BlockRenderer, QuizCard,
-│                                     # MasteryRing, DiffPanel, ReportDialog, Changelog, PipelineProgress
-└── .env.local
+│   │   ├── llmClient.ts            # Gemini REST wrapper + retry
+│   │   ├── prompts.ts              # System prompts
+│   │   ├── models.ts               # TypeScript schemas
+│   │   ├── mastery.ts              # updateMastery / detectTriggers
+│   │   ├── patchEngine.ts          # apply / undo / validateDAG
+│   │   ├── store.ts                # Zustand store + localStorage
+│   │   └── fixture.ts              # Safe-mode fixture (committed)
+│   └── styles/
+│       └── globals.css             # Global CSS variables & layout
+├── public/                         # Static assets
+├── .env.local                      # API keys (gitignored)
+├── next.config.ts                  # Next.js configuration
+├── package.json                    # NPM dependencies
+└── tsconfig.json                   # TypeScript config
 ```
 
-## Data model (client-held, JSON)
-```ts
-interface Course {
-  id: string; goal: string; profile: GoalProfile; version: number;
-  concepts: Concept[]; modules: Module[]; lessons: Record<Id, Lesson>;
-  quizzes: Record<Id /*lessonId*/, Question[]>; capstone: Capstone;
+---
+
+## Data model (held in `store.ts`, persisted via `localStorage` as JSON)
+
+```typescript
+export interface Course {
+  id: string;
+  goal: string;
+  profile: GoalProfile;
+  version: number;
+  concepts: Concept[];
+  modules: Module[];
+  lessons: Record<string, Lesson>;
+  quizzes: Record<string, Question[]>;
+  capstone?: any;
   changelog: ChangeEntry[];
 }
-interface LearnerState {
-  mastery: Record<Id /*conceptId*/, { p: number; attempts: number; misconceptions: Record<string, number> }>;
-  completedLessonIds: Id[]; attempts: Attempt[];   // {questionId, optionId, correct, ts}
+
+export interface LearnerState {
+  mastery: Record<string, MasteryRecord>;
+  completedLessonIds: string[];
 }
-interface ChangeEntry {
-  id: Id; ts: string; source: "adapt" | "report" | "propagate";
-  summary: string; reason: string; ops: PatchOp[]; inverseOps: PatchOp[];
-  verify?: VerifyResult; reportText?: string; undone?: boolean;
+
+export interface MasteryRecord {
+  p: number;
+  attempts: number;
+  misconceptions: Record<string, number>;
 }
 ```
-`inverseOps` are computed by `applyPatch` (snapshot of replaced entities) → one-click **Undo**.
 
-## API contracts
-| Route | Request | Response |
+`inverseOps` are computed by `patchEngine.ts` → one-tap **Undo**.
+
+---
+
+## API contracts (called from `llmClient.ts` via `fetch`)
+
+| Endpoint / Call | Input | Output |
 |---|---|---|
-| `POST /api/calibrate` | `{goal}` | `{profile, diagnostic: Question[]}` |
-| `POST /api/course` (SSE) | `{goal, profile, mastery}` | events: `step`, `concepts`, `curriculum`, `done` |
-| `POST /api/lesson` | `{course slice, lessonId, mastery}` | `{lesson, quiz}` |
-| `POST /api/resources` | `{lessonId, queries, objectives, level}` | `{resources: Resource[]}` |
-| `POST /api/adapt` | `{roadmap, concepts, mastery, trigger, attempts}` | `{patch: RoadmapPatch}` |
-| `POST /api/report` | `{report, lesson, context}` | `{fixPlan, verify, propagation: PatchOp[]}` |
-| `POST /api/tutor` | `{lesson, mastery, question}` | `{answer, altExplanationBlock, suggestReport}` |
+| `calibrate()` | `goal: string` | `GoalProfile + [Question]` |
+| `generateCourse()` | `goal, profile, mastery` | `concepts`, `curriculum` |
+| `generateLesson()` | `courseSlice, lessonId, mastery` | `Lesson + [Question]` |
+| `adapt()` | `roadmap, concepts, mastery, trigger, attempts` | `RoadmapPatch` |
+| `reportFix()` | `report, lesson, context` | `FixPlan + VerifyResult + [PatchOp]` |
 
-Keys stay server-side (env). Simple in-memory cache keyed by hash(prompt) for demo speed and safe mode.
+API keys live in `localStorage` for the demo. They are entered via the `ApiKeyModal` on the first visit.
 
-## Core engines (deterministic, unit-testable)
-- **`mastery.ts`**: `updateMastery(state, question, option)`, `detectTriggers(state, course)` → the exact formulas in [AI.md](AI.md).
-- **`patch.ts`**: `validate(patch)` (whitelist ops, ≤ 3 ops, IDs exist, DAG acyclic, no deleting completed lessons), `apply(course, patch) → {course, inverse}`, `undo(course, entry)`.
-- **`resources.ts`**: `search → linkCheck (HEAD, 3 s timeout) → rerank`; never returns unverified URLs.
+---
 
-## Latency & UX tactics
-- Stream concept graph first, curriculum second → map "grows" on screen.
-- Lazy-generate lessons; prefetch next lesson + quiz + resources when a lesson opens.
-- Skeleton blocks stream in as they arrive.
-- Demo **safe mode** with fixtures (see [SETUP.md](SETUP.md)).
+## Core engines (deterministic, functional)
+
+- **`mastery.ts`**: `updateMastery(state, question, option)`, `detectTriggers(state, course)`.
+- **`patchEngine.ts`**: `applyPatch()`, `undoPatch()`, `validateDAG()`.
+
+---
+
+## Streaming & UX tactics
+
+- UI updates eagerly where possible.
+- **Safe mode**: load `fixture.ts` which populates the store instantly; mock `llmClient` returns cached responses. No API key needed.
+
+---
 
 ## Security & privacy (minimal, intentional)
-API keys server-side only; no PII stored; localStorage only; basic rate limit per IP on API routes. Auth/DB explicitly out of scope for MVP.
 
-## Build plan (scale to your hackathon length; hours assume ~24 h)
-| Phase | Hours | Deliverable | Cut line |
-|---|---|---|---|
-| 0 | 0–2 | Scaffold, Zod schemas, `llm.ts`, store | — |
-| 1 | 2–6 | Goal intake → course gen (SSE) → React Flow roadmap | **Must** |
-| 2 | 6–10 | Lesson gen + BlockRenderer + resources (YouTube + link check) | **Must** |
-| 3 | 10–14 | Quiz + mastery + adapt patch + diff panel | **Must** |
-| 4 | 14–18 | Report/Fix + verify + changelog + Undo | **Must** |
-| 5 | 18–21 | Diagnostic/skip, progress dashboard, confidence badges | Should |
-| 6 | 21–24 | Fixtures/safe mode, polish, demo rehearsal x3 | **Must** |
-Drop first if behind: tutor, capstone view, propagation step (keep a stub), diagnostic (seed mastery manually for the demo).
-
-## Testing checklist
-Unit-test `mastery.ts` and `patch.ts` (they carry the demo). Run the full demo path 5× on the venue Wi-Fi and once offline in safe mode.
+API keys in `localStorage` only; no backend server required for demo. Auth/DB explicitly out of scope for MVP.

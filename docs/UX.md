@@ -1,48 +1,81 @@
-# UX Specification
+# UX Specification (Web — React/Next.js)
 
-**Design intent:** feels like a *learning product* (think a game-tech-tree meets a good docs site), never a chat window. Every AI action leaves a visible, explainable trace.
+**Design intent:** feels like a *learning product* (think a game skill-tree meets a great reading app), never a chat window. Every AI action leaves a visible, explainable trace. Native Web controls; smooth, meaningful animations; readable on desktop and mobile.
+
+---
 
 ## Visual direction
-- Dark-neutral canvas with one accent color; mastery colors: grey (untouched), blue (in progress), amber (weak), green (solid), dashed outline (skippable).
-- Large type, generous spacing, projector-legible (min 16 px body, high contrast).
-- Motion only where meaning changes: nodes growing in, patch insertion animation, mastery ring fill.
+
+- **Color:** dark canvas (glassmorphic aesthetic) with one accent color (blue/indigo). Mastery tints: grey (untouched), blue (in progress), amber (weak), green (solid).
+- **Typography:** Inter or system sans-serif — large title for screen headers, body for lesson text, monospaced for code blocks. Minimum 16px body. High contrast.
+- **Motion:** only where meaning changes — nodes growing onto the canvas, mastery ring fill animation. No decorative loops.
+- **Demo target:** Desktop Web Browser. Key information visible without scroll on launch.
+
+---
+
+## Navigation structure
+
+```
+App Router
+├── /goal                  (root on first launch)
+├── /build                 (redirected after goal submitted)
+└── /roadmap               (redirected after build; becomes persistent home)
+    ├── /lesson/[id]       (linked from node tap)
+    │   └── /quiz/[id]     (linked from lesson footer)
+    └── /report/[id]       (linked from lesson footer button)
+```
+
+---
 
 ## Screens
 
-### 1. Goal intake
-Single large text field ("What do you want to learn?") + example chips (PCB design, options pricing, beekeeping). After submit: two chips (end-goal, hrs/week) and toggle "Quick 5-question calibration (recommended)".
+### 1. Goal Intake (`/goal`)
+- Single large Text Input ("What do you want to learn?") with placeholder.
+- Example chips below: *PCB design*, *Options pricing*, *Beekeeping* — tap to fill.
+- Primary button: **"Build my course →"** (full-width, accent color).
 
-### 2. Build screen
-Pipeline stepper tied to **real** stages: *Understanding goal → Mapping concepts → Ordering prerequisites → Drafting modules → Finding sources*. Concept nodes pop into a mini-graph as they stream in.
+### 2. Build Screen (`/build`)
+- Loading pipeline stepper tied to streaming stages:
+  - *Understanding goal → Mapping concepts → Ordering prerequisites → Drafting modules → Finding sources*
+- Progress is deterministic steps, not a spinner.
 
-### 3. Roadmap (home)
-- Left: React Flow map (modules as clusters; lessons as nodes; prerequisite edges). Click node → side drawer preview.
-- Right rail: **Next best action** card, overall progress, mastery rings per module, **Changelog** tab.
-- Badges: `Skippable (you know this)`, `Added for you`, `Fixed`, confidence dot.
-- "What changed & why" banner slides in after any patch → opens **DiffPanel**.
+### 3. Roadmap (`/roadmap` - home)
+- **Top area:** React SVG Canvas rendering modules as clusters; lessons as rounded-rect nodes; prerequisite edges as directional lines.
+  - Tap a node → navigates to the lesson.
+- **Persistent bottom rail:** *Next Best Action* card, overall progress bar, mastery rings per module.
+- **Badges on nodes:** `Skippable (you know this)`, `Added for you`, `Fixed`.
 
-### 4. Lesson workspace
-- Center: BlockRenderer (text, worked example stepper, callouts, Mermaid diagram, inline checkpoints with reveal).
-- Right: **Resources** (video embed with creator credit + "why this fits"), **Sources** chips, **Task** card.
-- Footer: `Take quiz` · `Explain differently` · **`Report / Fix this`** (always visible, accent-outlined).
-- Each block has a hover "flag this block" icon that pre-fills `selectedBlockId`.
+### 4. Lesson Workspace (`/lesson/[id]`)
+- Rendered markdown page with `BlockRenderer`.
+- **Embedded YouTube player** (with creator credit + "why this fits").
+- **Sticky footer:**
+  - `Take quiz` · `Explain differently` · **`Report / Fix ⚑`** (accent-outlined, always visible).
 
-### 5. Quiz
-One question per screen; after answer: correctness, explanation, and (if wrong) the named misconception ("Common confusion: schematic vs. layout"). Summary shows concept-level mastery bars moving.
+### 5. Quiz (`/quiz/[id]`)
+- One question per screen.
+- After answer: correctness badge appears; explanation + (if wrong) the named misconception ("Common confusion: *schematic vs. layout*").
+- Final summary screen: concept-level mastery bars update.
 
-### 6. Report / Fix dialog & result
-Dialog: type chips (incorrect, confusing, missing prerequisite, poor example, outdated, too hard, too easy, broken resource, I don't understand) + optional text.
-Result view (the demo climax): **Diagnosis** → **Before/After diff** → **Verifier ✅ (claims checked)** → **Also updated** (dependents) → **Undo**.
+### 6. Report / Fix Page (`/report/[id]`)
+- Type chips (incorrect, confusing, missing prerequisite, poor example, outdated, too hard, too easy, broken resource, I don't understand) + free-text input.
+- **Result view (demo climax)** — page updates to show:
+  1. **Diagnosis** — root cause card
+  2. **Before / After diff** — side-by-side blocks
+  3. **Verifier ✅** — claims checked list
 
-### 7. Completion
-Capstone brief with success criteria + "what to learn next" suggestions (new goals that reuse mastered concepts).
+---
 
 ## Interaction principles
-1. Explain every change in one sentence naming the evidence.
-2. Never change content silently; always changelog + Undo.
-3. Loading states are progress, not spinners.
-4. Errors degrade to partial content ("Resources unavailable — retry") without blocking learning.
-5. Keyboard-friendly quiz (1–4 keys) for fast demo.
 
-## Accessibility & polish (cheap wins)
-Alt text on diagrams, focus rings, color + icon (not color alone) for mastery states, responsive down to tablet.
+1. Explain every roadmap change in one sentence naming the evidence.
+2. Never change content silently — always changelog entry + Undo available.
+3. Loading states show real pipeline progress, not generic spinners.
+4. Errors degrade to partial content ("Resources unavailable — retry") without blocking learning.
+
+---
+
+## Accessibility & polish
+
+- Color + icon (never color alone) for mastery states — meets WCAG AA contrast.
+- Semantic HTML tags for screen readers.
+- Keyboard-friendly navigation.

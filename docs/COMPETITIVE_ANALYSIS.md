@@ -13,6 +13,8 @@
 | Traditional LMS | Container | Grades | No | N/A | Uploaded | Depends on admin |
 | **AnyLearn** | **Yes, generated + versioned** | **Per concept + misconception** | **Roadmap patches w/ diff** | **Yes** | **Search-sourced, link-checked** | **Yes** |
 
+> AnyLearn is a **native Next.js web application** — a purpose-built learning environment, not a conversational chat interface.
+
 ## Per-competitor
 
 ### ChatGPT / Claude / Gemini
@@ -41,10 +43,11 @@
 - **AnyLearn stance:** a *content-and-adaptation layer* an LMS could embed later.
 
 ## Where AnyLearn must be different (and is)
-1. **Environment, not conversation** — persistent course object rendered as UI.
+1. **Environment, not conversation** — persistent course object rendered as a native Web UI.
 2. **Understanding as data** — concept mastery + misconception tracking.
 3. **Self-repair** — Report/Fix with verification, diff, undo, propagation.
 4. **Trust by construction** — grounded sources, no hallucinated links, confidence badges.
+5. **Native Web** — full React/Next.js app; feels like a premium product, not a generic chat window.
 
 ## Honest weaknesses to own
 - Content quality ≤ underlying model quality + retrieved sources; we reduce and expose risk rather than eliminate it.

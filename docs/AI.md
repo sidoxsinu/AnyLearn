@@ -1,13 +1,13 @@
 # AI Architecture
 
 ## Principle
-**AI proposes, the engine disposes.** Models generate content and patch *proposals* as schema-validated JSON. Deterministic code validates (Zod, DAG checks), applies whitelisted patch ops, computes mastery, and renders. The model never mutates state directly and never supplies URLs.
+**AI proposes, the engine disposes.** Models generate content and patch *proposals* as schema-validated JSON. Deterministic code validates (Zod, DAG checks), applies whitelisted patch ops, computes mastery, and renders. Keys live in `localStorage` securely on the client side for the demo. In-memory/storage response cache keyed by `SHA256(prompt)` for demo speed and safe mode. The model never mutates state directly and never supplies URLs.
 
 ## Provider strategy
-- Single `llm.ts` wrapper: `generate<T>(schema, system, user, {model, grounding})`.
-- **Default:** Gemini Flash-class model (fast, generous free tier, native JSON-schema output, optional Google Search grounding). **Alt:** Claude Sonnet-class via API for higher-quality fixes/verification. Check current model IDs at build time.
+- Single `llmClient.ts` wrapper: `generate<T>(system: string, user: string, apiKey: string, options: LLMOptions): Promise<T>`.
+- **Default:** Gemini Flash-class model via the **Google Generative AI REST API** (fast, generous free tier, native structured output).
 - Strategy: *fast model* for roadmap/lessons/quizzes; *stronger model* (if available) for **Report/Fix + Verify**. Verifier ideally uses a **different model/temperature** than the fixer to reduce correlated errors.
-- All calls: temperature 0.4 (generation), 0.1 (verify/diagnose); retry once on schema failure, passing the validation error back.
+- All calls: temperature 0.4 (generation), 0.1 (verify/diagnose); retry once on `JSON.parse` decode failure, passing the validation error back.
 
 ## Pipeline overview
 ```
@@ -36,10 +36,13 @@ Input: goal text. Output: `GoalProfile` (topic, endArtifact, inferredLevel, cons
 Two-step to keep latency low and quality high:
 1. **Concept graph:** 20–35 atomic concepts with `prereqIds`, ordered by DAG (validate acyclic; auto-repair by dropping the lowest-confidence back-edge).
 2. **Curriculum:** cluster into 4–6 modules; 3–5 lesson *stubs* each (title, objectives, conceptIds, `resourceQueries`, task idea); capstone project; "skippable" flags where diagnostic mastery ≥ 0.8.
-Streamed via SSE so the UI shows real pipeline progress.
+Stream concept graph first via Gemini SDK streaming; curriculum second → canvas nodes "grow" on screen.
 
 ### 3. Lesson generation (lazy + prefetch next)
 Block-based content (see schema). Rules: every lesson has objectives, ≥ 1 worked example, ≥ 1 checkpoint, common mistakes, and a hands-on task. Uses lesson stub + concept definitions + learner mastery to set depth ("you already know X, so we go fast").
+Lazy-generate lessons on `LessonWorkspaceView` appear; prefetch next lesson + quiz + resources when a lesson opens.
+Skeleton blocks appear with `.redacted(reason: .placeholder)` while streaming.
+Demo **safe mode** with fixtures (see [SETUP.md](SETUP.md)).
 
 ### 4. Quiz generation
 4–6 questions from *the lesson content just generated* (not from thin air). Each question has `conceptId`, `difficulty`, per-option `misconception` tags, and an `explanation` referencing the lesson block ID. At least one application question; one "transfer" question at a new context.
@@ -135,7 +138,7 @@ interface VerifyResult { verdict: "pass" | "fail"; issues: { severity: "high"|"l
 ```
 
 ## Trust layer summary
-- No model-authored URLs · link checks · `sources[]` + confidence badge · verifier on fixes · changelog + undo · low-confidence topics get wider prerequisites and explicit "unsourced" flags instead of bluffing.
+- No model-authored URLs · link checks · `sources[]` + confidence badge · verifier on fixes · API keys in `.env.local` (gitignored); no PII stored; `localStorage` only; no backend server required for demo. Auth/DB explicitly out of scope for MVP. Low-confidence topics get wider prerequisites and explicit "unsourced" flags instead of bluffing.
 
 ## Failure handling
-Schema failure → retry once with error; second failure → fall back to cached/safe fixture (demo) or show "regenerate" (prod). Timeouts: 25 s hard cap per call; UI shows skeleton + partial results.
+`TypeScript` decode failure → retry once with error message; second failure → fall back to cached/safe fixture (demo) or show "Regenerate" button (prod). Timeouts: 25 s hard cap per call; UI shows skeleton + partial results via `Task` cancellation.

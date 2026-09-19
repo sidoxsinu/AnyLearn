@@ -39,8 +39,9 @@ Details: [PRODUCT_DIFFERENTIATION.md](PRODUCT_DIFFERENTIATION.md).
 - A flawless 4–5 minute live demo.
 
 **Non-goals (MVP)**
-- Auth, payments, multi-user, real DB, scalability, moderation, mobile apps.
+- Auth, payments, multi-user, real DB, scalability, moderation.
 - Human-expert review, certification, spaced-repetition scheduling (future).
+- Native iOS/Android versions (Web-first; cross-platform is future scope).
 - Guaranteeing factual perfection — we provide *detection, citation and repair*, not infallibility.
 
 ## 7. User journey
@@ -91,8 +92,8 @@ Details: [PRODUCT_DIFFERENTIATION.md](PRODUCT_DIFFERENTIATION.md).
 **FR-6 Adaptation:** When any concept < 0.5 after a quiz (or diagnostic shows ≥ 0.8), request a `RoadmapPatch`; apply deterministically; show diff.
 **FR-7 Report/Fix:** Report types (§11); build context bundle; get `FixPlan`; run verifier; apply patch; propagate to dependents; append changelog; allow **undo**.
 **FR-8 Resources:** LLM emits search queries only; server fetches from YouTube Data API/web search; filter, dedupe, link-check; each resource shows title, creator, source, and "why this fits this lesson".
-**FR-9 Progress:** Persist state in localStorage; resume on reload.
-**FR-10 Safe mode:** `?demo=safe` loads pre-generated course and cached AI responses for the demo topic.
+**FR-9 Progress:** Persist state via `localStorage` (JSON-encoded `Course` + `LearnerState`); resume on next app launch automatically.
+**FR-10 Safe mode:** Preview mode button on launch populates the app with `fixture.ts` — no network AI calls made.
 
 ## 11. Report / Fix taxonomy
 `incorrect` · `confusing` · `missing_prerequisite` · `poor_example` · `outdated` · `too_hard` · `too_easy` · `broken_resource` · `dont_understand` (free text always allowed).
@@ -106,10 +107,10 @@ Details: [PRODUCT_DIFFERENTIATION.md](PRODUCT_DIFFERENTIATION.md).
 - Latency budgets: roadmap ≤ 20 s, lesson ≤ 12 s, adapt ≤ 8 s, fix ≤ 15 s (incl. verify).
 
 ## 13. UX requirements
-See [UX.md](UX.md). Key: no chat as primary surface; roadmap map is the home screen; every AI change is *visible* (diffs, toasts, changelog); generation progress reflects real pipeline steps; works on projector resolution.
+See [UX.md](UX.md). Key: native Next.js web app; no chat as primary surface; roadmap canvas is the home screen; every AI change is *visible* (diffs, banners, changelog); generation progress reflects real pipeline steps; readable on desktop and mobile browsers.
 
 ## 14. MVP scope
-In: F1–F8, F14, plus F9/F13 minimal. Out: auth, DB, export, spaced repetition, multi-course library (single active course + list from localStorage acceptable).
+In: F1–F8, F14, plus F9/F13 minimal. Out: auth, DB, export, spaced repetition, multi-course library (single active course + `localStorage` list acceptable).
 
 ## 15. Future scope
 Spaced repetition; teacher/community-vetted "verified" course layer where fixes from many learners merge; course sharing/forking; offline packs; voice tutor; project review (upload PCB Gerber → AI feedback); calendar planning; multi-language.
@@ -117,12 +118,13 @@ Spaced repetition; teacher/community-vetted "verified" course layer where fixes 
 ## 16. Acceptance criteria
 - AC-1: Entering "learn PCB design from zero" yields a roadmap with ≥ 4 modules and valid prerequisite DAG in ≤ 20 s.
 - AC-2: Opening a lesson renders ≥ 5 typed blocks, ≥ 1 checkpoint, ≥ 2 verified resources.
-- AC-3: Failing 2+ questions on one concept produces a visible patch (inserted remedial lesson or added practice) and updates the map.
+- AC-3: Failing 2+ questions on one concept produces a visible patch (inserted remedial lesson or added practice) and the node springs onto the canvas.
 - AC-4: Passing the diagnostic on a concept marks its lessons "Skippable" with reason.
 - AC-5: Submitting a Report shows: diagnosis, before/after diff, verifier status, affected downstream items, changelog entry; **Undo** restores the previous version.
 - AC-6: No resource URL in the UI fails a link check at render time (broken ones hidden/replaced).
-- AC-7: Reload preserves progress.
-- AC-8: Safe mode completes the full demo path with no network AI calls.
+- AC-7: App relaunch restores progress from `localStorage`.
+- AC-8: Preview mode completes the full demo path with no network AI calls.
+- AC-9: App builds and runs on a Desktop Web Browser without modification.
 
 ## 17. Success metrics
 **Hackathon:** judges can state the 4 differentiators after the demo; zero demo-breaking failures; ≥ 1 live Report/Fix visibly improves content.
