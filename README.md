@@ -1,5 +1,8 @@
 # AnyLearn
 
+> 🚀 **Live Deployed Application:** **[https://anylearn-eight.vercel.app](https://anylearn-eight.vercel.app)**  
+> 🎬 **Screen Recording & Pitch Walkthrough:** **[Google Drive Video Folder](https://drive.google.com/drive/folders/1luywo5jKaEEn2Ot7bPYWSODBeXG0-lAg?usp=sharing)**
+
 ## Overview
 
 **AnyLearn** is a living, adaptive learning platform engineered for **ONE learner and ONE goal**. Instead of forcing learners into generic, static playlists, AnyLearn generates a customized curriculum structured as an acyclic concept dependency graph (DAG), produces block-based interactive lessons with worked examples, assesses comprehension through contextual quizzes, and dynamically patches the curriculum in real time using a deterministic Bayesian Knowledge Tracing (BKT) engine.
@@ -179,13 +182,15 @@ AI development tools and LLM integrations played a central role throughout the l
 
 ## Demo
 
-### Live Demo
+### 🚀 Live Deployed Project
 
-[Explore AnyLearn Live](https://anylearn.vercel.app) *(Replace with your deployment URL)*
+👉 **[Launch AnyLearn on Vercel: https://anylearn-eight.vercel.app](https://anylearn-eight.vercel.app)**  
+*Live, interactive, and zero-configuration ready with full offline curriculum fixtures and Gemini API support.*
 
-### Demo / Pitch Video
+### 🎬 Screen Recording & Pitch Video
 
-[Watch AnyLearn Demo Video](https://youtu.be/your-video-link) *(Add your walkthrough or pitch video link)*
+👉 **[Watch Screen Recording & Pitch Demo (Google Drive Folder)](https://drive.google.com/drive/folders/1luywo5jKaEEn2Ot7bPYWSODBeXG0-lAg?usp=sharing)**  
+*Complete walkthrough showcasing course goal generation, DAG roadmaps, interactive lessons, quizzes, and Bayesian adaptation.*
 
 ---
 
