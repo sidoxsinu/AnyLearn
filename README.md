@@ -44,7 +44,7 @@ flowchart TD
     end
 
     subgraph GENERATION ["2. Generative Proposal Layer"]
-        C --> D["Gemini Flash API"]
+        C --> D["OpenAi API"]
         D --> E["Structured JSON Proposal"]
     end
 
