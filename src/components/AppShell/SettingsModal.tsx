@@ -128,6 +128,26 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </div>
         </div>
 
+        {/* Guided Onboarding Tour Replay */}
+        <div className="pt-3 border-t-2 border-black flex flex-col gap-2">
+          <span className="text-xs font-black uppercase tracking-wider text-black">
+            Guided Onboarding Tour
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('start-anylearn-tour'));
+              }
+            }}
+            className="brutal-btn brutal-btn-sm brutal-btn-primary flex items-center justify-center gap-2"
+          >
+            <span>❓</span>
+            <span>Launch Interactive Tour</span>
+          </button>
+        </div>
+
         {/* Reset Course Progress */}
         <div className="pt-3 border-t-2 border-black flex flex-col gap-2">
           <span className="text-xs font-black uppercase tracking-wider text-red-600">

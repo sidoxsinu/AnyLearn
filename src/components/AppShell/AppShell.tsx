@@ -5,11 +5,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { SettingsModal } from './SettingsModal';
+import { OnboardingTour } from '../OnboardingTour';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '/roadmap';
   const { course, learner } = useStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const handleStartTour = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('start-anylearn-tour'));
+    }
+  };
 
   // Derive real next lesson ID from the active course and learner state
   const allLessonIDs = course?.modules.flatMap((m) => m.lessonIDs) || [];
@@ -51,6 +58,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           {/* Brand Wordmark with Electric Yellow Star Box */}
           <Link
+            id="tour-brand"
             href="/roadmap"
             className="flex items-center gap-2.5 select-none shrink-0"
             style={{ textDecoration: 'none' }}
@@ -103,6 +111,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Center Navigation Links (Real functional routes) */}
           <nav className="hidden md:flex items-center gap-2">
             <Link
+              id="tour-nav-roadmap"
               href="/roadmap"
               className={`brutal-nav-link ${isRoadmap ? 'active' : ''}`}
             >
@@ -110,6 +119,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
 
             <Link
+              id="tour-nav-lesson"
               href={lessonHref}
               className={`brutal-nav-link ${isLesson ? 'active' : ''}`}
             >
@@ -117,6 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
 
             <Link
+              id="tour-nav-quiz"
               href={quizHref}
               className={`brutal-nav-link ${isQuiz ? 'active' : ''}`}
             >
@@ -124,6 +135,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
 
             <Link
+              id="tour-nav-report"
               href={reportHref}
               className={`brutal-nav-link ${isReport ? 'active' : ''}`}
             >
@@ -131,6 +143,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
 
             <Link
+              id="tour-nav-goal"
               href="/goal"
               className={`brutal-nav-link ${isGoal ? 'active' : ''}`}
             >
@@ -143,6 +156,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {/* Real Progress Metric Pill */}
             {totalLessons > 0 && (
               <div
+                id="tour-progress-pill"
                 style={{
                   backgroundColor: '#00F59B',
                   border: '2px solid #000000',
@@ -162,8 +176,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             )}
 
+            {/* Interactive Tour Button */}
+            <button
+              id="tour-btn"
+              type="button"
+              onClick={handleStartTour}
+              className="brutal-btn brutal-btn-sm brutal-btn-primary"
+              title="Interactive Tour & Guide"
+              aria-label="Start Tour"
+            >
+              <span>❓</span>
+              <span className="hidden sm:inline">Tour</span>
+            </button>
+
             {/* Settings Button */}
             <button
+              id="tour-settings-btn"
               type="button"
               onClick={() => setIsSettingsOpen(true)}
               className="brutal-btn brutal-btn-sm brutal-btn-white"
@@ -187,30 +215,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           }}
         >
           <Link
+            id="tour-mobile-roadmap"
             href="/roadmap"
             className={`brutal-mobile-nav-link ${isRoadmap ? 'active' : ''}`}
           >
             🗺️ Roadmap
           </Link>
           <Link
+            id="tour-mobile-lesson"
             href={lessonHref}
             className={`brutal-mobile-nav-link ${isLesson ? 'active' : ''}`}
           >
             📖 Lesson
           </Link>
           <Link
+            id="tour-mobile-quiz"
             href={quizHref}
             className={`brutal-mobile-nav-link ${isQuiz ? 'active' : ''}`}
           >
             ⚡ Quiz
           </Link>
           <Link
+            id="tour-mobile-report"
             href={reportHref}
             className={`brutal-mobile-nav-link ${isReport ? 'active' : ''}`}
           >
             📊 Report
           </Link>
           <Link
+            id="tour-mobile-goal"
             href="/goal"
             className={`brutal-mobile-nav-link ${isGoal ? 'active' : ''}`}
           >
@@ -259,6 +292,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
+
+      {/* Interactive Onboarding Tour */}
+      <OnboardingTour />
     </div>
   );
 }
