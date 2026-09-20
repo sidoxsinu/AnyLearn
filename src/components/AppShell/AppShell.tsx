@@ -188,51 +188,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <Link
             href="/roadmap"
-            style={{
-              textDecoration: isRoadmap ? 'underline' : 'none',
-              textDecorationThickness: 2,
-              color: '#000000',
-            }}
+            className={`brutal-mobile-nav-link ${isRoadmap ? 'active' : ''}`}
           >
             🗺️ Roadmap
           </Link>
           <Link
             href={lessonHref}
-            style={{
-              textDecoration: isLesson ? 'underline' : 'none',
-              textDecorationThickness: 2,
-              color: '#000000',
-            }}
+            className={`brutal-mobile-nav-link ${isLesson ? 'active' : ''}`}
           >
             📖 Lesson
           </Link>
           <Link
             href={quizHref}
-            style={{
-              textDecoration: isQuiz ? 'underline' : 'none',
-              textDecorationThickness: 2,
-              color: '#000000',
-            }}
+            className={`brutal-mobile-nav-link ${isQuiz ? 'active' : ''}`}
           >
             ⚡ Quiz
           </Link>
           <Link
             href={reportHref}
-            style={{
-              textDecoration: isReport ? 'underline' : 'none',
-              textDecorationThickness: 2,
-              color: '#000000',
-            }}
+            className={`brutal-mobile-nav-link ${isReport ? 'active' : ''}`}
           >
             📊 Report
           </Link>
           <Link
             href="/goal"
-            style={{
-              textDecoration: isGoal ? 'underline' : 'none',
-              textDecorationThickness: 2,
-              color: '#000000',
-            }}
+            className={`brutal-mobile-nav-link ${isGoal ? 'active' : ''}`}
           >
             🎯 Goal
           </Link>

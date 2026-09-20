@@ -37,7 +37,7 @@ export default function RoadmapPage() {
   }
 
   // Derive live data from store
-  const allLessonIDs = course.modules.flatMap((m) => m.lessonIDs);
+  const allLessonIDs = (course.modules || []).flatMap((m) => m.lessonIDs || []);
   const completedIDs = learner.completedLessonIDs || [];
   const nextLessonID = allLessonIDs.find((id) => !completedIDs.includes(id)) || allLessonIDs[0];
   const nextLesson = nextLessonID ? course.lessons[nextLessonID] : null;
@@ -345,8 +345,8 @@ export default function RoadmapPage() {
       {/* ── 4. Main Content: List View vs Graph View ──────────────────────── */}
       {viewMode === 'list' ? (
         <div className="flex flex-col gap-6">
-          {course.modules.map((mod, modIdx) => {
-            const modLessons = mod.lessonIDs
+          {(course.modules || []).map((mod, modIdx) => {
+            const modLessons = (mod.lessonIDs || [])
               .map((id) => course.lessons[id])
               .filter(Boolean)
               .filter((l) => matchesSearch(l.title, l.description));
@@ -619,14 +619,14 @@ export default function RoadmapPage() {
             <div className="flex items-center gap-2">
               <span style={{ fontSize: 16 }}>⚡</span>
               <h3 style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#000000' }}>
-                Adaptive Changelog ({course.changelog.length} updates)
+                Adaptive Changelog ({(course.changelog || []).length} updates)
               </h3>
             </div>
             <span style={{ fontSize: 12, fontWeight: 800, color: '#525252' }}>Live Course Adaptation</span>
           </div>
 
           <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
-            {course.changelog.slice().reverse().map((entry) => (
+            {(course.changelog || []).slice().reverse().map((entry) => (
               <div
                 key={entry.id}
                 style={{
@@ -724,7 +724,7 @@ export default function RoadmapPage() {
                   Learning Objectives
                 </span>
                 <ul className="flex flex-col gap-1.5 text-xs font-bold text-black" style={{ paddingLeft: 0, margin: 0, listStyle: 'none' }}>
-                  {selectedLesson.objectives.map((obj, i) => (
+                  {(selectedLesson.objectives || []).map((obj, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <span>•</span>
                       <span>{obj}</span>

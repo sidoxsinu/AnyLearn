@@ -99,7 +99,7 @@ export default function QuizPage() {
       return;
     }
 
-    const weakConcepts = lesson.conceptIDs.filter(cid => {
+    const weakConcepts = (lesson.conceptIDs || []).filter(cid => {
       const r = learner.mastery[cid];
       return r && Mastery.shouldAdapt(r);
     });
@@ -156,11 +156,14 @@ export default function QuizPage() {
   const isLastQuestion = step === questions.length - 1;
 
   const shuffledOptions = useMemo(() => {
-    if (!q) return [];
+    if (!q || !Array.isArray(q.options)) return [];
     // Deterministic option order based on question and option text to ensure render purity
     return [...q.options].sort((a, b) => {
-      const charA = (a.text.charCodeAt(0) || 0) + (q.id.charCodeAt(0) || 0);
-      const charB = (b.text.charCodeAt(0) || 0) + (q.id.charCodeAt(0) || 0);
+      const textA = a?.text || '';
+      const textB = b?.text || '';
+      const qId = q.id || '';
+      const charA = (textA.charCodeAt(0) || 0) + (qId.charCodeAt(0) || 0);
+      const charB = (textB.charCodeAt(0) || 0) + (qId.charCodeAt(0) || 0);
       return (charA % 7) - (charB % 7);
     });
   }, [q]);
@@ -210,7 +213,7 @@ export default function QuizPage() {
   const score = results.length > 0 ? correctCount / results.length : 0;
 
   if (showSummary) {
-    const weakConcepts = lesson.conceptIDs.filter(cid => {
+    const weakConcepts = (lesson.conceptIDs || []).filter(cid => {
       const r = learner.mastery[cid];
       return r && Mastery.shouldAdapt(r);
     });
@@ -250,7 +253,7 @@ export default function QuizPage() {
                 <span>Concept Mastery Updated</span>
               </div>
               <div className="flex flex-col gap-3">
-                {lesson.conceptIDs.map(cid => {
+                {(lesson.conceptIDs || []).map(cid => {
                   const concept = course.concepts.find(c => c.id === cid);
                   const record = learner.mastery[cid];
                   return (

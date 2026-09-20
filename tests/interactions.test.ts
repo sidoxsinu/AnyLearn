@@ -205,4 +205,47 @@ test('Interactions & UI Logic — Tier 3 Test Suite', async (t) => {
 
     assert.ok(html.includes('skip ✓'));
   });
+
+  await t.test('TC-INT-09: BlockRenderer handles undefined or missing steps in workedExample block without throwing', () => {
+    // Malformed block mimicking LLM output missing the steps array
+    const malformedBlock = {
+      type: 'workedExample' as const,
+      id: 'b-ex-malformed',
+      title: 'Missing Steps Example',
+      // steps explicitly undefined
+    } as unknown as Block;
+
+    assert.doesNotThrow(() => {
+      const html = ReactDOMServer.renderToStaticMarkup(
+        React.createElement(BlockRenderer, { block: malformedBlock })
+      );
+      assert.ok(html.includes('Missing Steps Example'));
+      assert.ok(html.includes('block-worked-example'));
+    });
+  });
+
+  await t.test('TC-INT-10: BlockRenderer handles missing markdown or malformed callout without throwing', () => {
+    const malformedMd = {
+      type: 'markdown' as const,
+      id: 'b-md-empty',
+    } as unknown as Block;
+
+    const malformedCallout = {
+      type: 'callout' as const,
+      id: 'b-call-empty',
+    } as unknown as Block;
+
+    assert.doesNotThrow(() => {
+      const htmlMd = ReactDOMServer.renderToStaticMarkup(
+        React.createElement(BlockRenderer, { block: malformedMd })
+      );
+      assert.ok(htmlMd.includes('block-markdown'));
+
+      const htmlCall = ReactDOMServer.renderToStaticMarkup(
+        React.createElement(BlockRenderer, { block: malformedCallout })
+      );
+      assert.ok(htmlCall.includes('block-callout'));
+    });
+  });
 });
+

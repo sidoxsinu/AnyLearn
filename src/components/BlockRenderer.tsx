@@ -10,6 +10,8 @@ interface Props {
 }
 
 export function BlockRenderer({ block, onFlag }: Props) {
+  if (!block) return null;
+
   return (
     <div className="block animate-fadein">
       {block.type === 'markdown' && <MarkdownBlock block={block} onFlag={onFlag} />}
@@ -26,7 +28,7 @@ function MarkdownBlock({ block, onFlag }: { block: Extract<Block, { type: 'markd
     <div className="block-markdown" style={{ position: 'relative' }}>
       {onFlag && (
         <button
-          onClick={() => onFlag(block.id)}
+          onClick={() => onFlag(block.id || '')}
           className="btn-ghost btn-sm"
           title="Flag this block"
           style={{ position: 'absolute', right: 0, top: 0, opacity: 0.4, fontSize: 14 }}
@@ -34,30 +36,34 @@ function MarkdownBlock({ block, onFlag }: { block: Extract<Block, { type: 'markd
           ⚑
         </button>
       )}
-      <ReactMarkdown>{block.markdown}</ReactMarkdown>
+      <ReactMarkdown>{block.markdown || ''}</ReactMarkdown>
     </div>
   );
 }
 
 function WorkedExampleBlock({ block }: { block: Extract<Block, { type: 'workedExample' }> }) {
   const [open, setOpen] = useState(true);
+  const steps = Array.isArray(block.steps) ? block.steps : [];
+
   return (
     <div className="block-worked-example">
       <div className="worked-example-header" onClick={() => setOpen(!open)}>
         <span style={{ fontSize: 16 }}>⚙</span>
-        <span style={{ flex: 1 }}>{block.title}</span>
+        <span style={{ flex: 1 }}>{block.title || 'Worked Example'}</span>
         <span className="text-dim text-sm">{open ? '▲' : '▼'}</span>
       </div>
-      {open && block.steps.map((step, i) => (
+      {open && steps.map((step, i) => (
         <div key={i} className="worked-step">
           <div>
             <div className="worked-step-num">Step {i + 1}</div>
-            <div className="text-base">{step.text}</div>
+            <div className="text-base">{step?.text || ''}</div>
           </div>
-          <div className="worked-step-why text-sm text-muted">
-            <div className="worked-step-num" style={{ color: 'var(--text-3)' }}>Why</div>
-            {step.why}
-          </div>
+          {step?.why ? (
+            <div className="worked-step-why text-sm text-muted">
+              <div className="worked-step-num" style={{ color: 'var(--text-3)' }}>Why</div>
+              {step.why}
+            </div>
+          ) : null}
         </div>
       ))}
     </div>
@@ -71,11 +77,12 @@ const calloutEmoji: Record<string, string> = {
 };
 
 function CalloutBlock({ block }: { block: Extract<Block, { type: 'callout' }> }) {
+  const kind = block.kind || 'tip';
   return (
-    <div className={`block-callout ${block.kind}`}>
-      <span className="callout-icon">{calloutEmoji[block.kind] ?? '📌'}</span>
+    <div className={`block-callout ${kind}`}>
+      <span className="callout-icon">{calloutEmoji[kind] ?? '📌'}</span>
       <div className="block-markdown text-sm">
-        <ReactMarkdown>{block.markdown}</ReactMarkdown>
+        <ReactMarkdown>{block.markdown || ''}</ReactMarkdown>
       </div>
     </div>
   );
@@ -85,13 +92,13 @@ function CheckpointBlock({ block }: { block: Extract<Block, { type: 'checkpoint'
   const [revealed, setRevealed] = useState(false);
   return (
     <div className="block-checkpoint">
-      <div className="checkpoint-question">✏ {block.question}</div>
+      <div className="checkpoint-question">✏ {block.question || ''}</div>
       {!revealed ? (
         <button className="checkpoint-reveal-btn" onClick={() => setRevealed(true)}>
           Reveal answer
         </button>
       ) : (
-        <div className="checkpoint-answer">{block.answer}</div>
+        <div className="checkpoint-answer">{block.answer || ''}</div>
       )}
       {block.hint && !revealed && (
         <div className="text-xs text-dim" style={{ marginTop: 8 }}>
@@ -104,7 +111,6 @@ function CheckpointBlock({ block }: { block: Extract<Block, { type: 'checkpoint'
 
 function DiagramBlock({ block }: { block: Extract<Block, { type: 'diagram' }> }) {
   // Render mermaid diagram as pre-formatted text for simplicity
-  // A real implementation would use the mermaid.js library to render SVGs
   return (
     <div className="card-sm">
       <div className="text-xs text-muted" style={{ marginBottom: 8 }}>📊 Diagram</div>
@@ -115,7 +121,7 @@ function DiagramBlock({ block }: { block: Extract<Block, { type: 'diagram' }> })
         borderRadius: 8,
         fontSize: 12,
       }}>
-        {block.mermaid}
+        {block.mermaid || ''}
       </pre>
       {block.caption && (
         <div className="text-xs text-dim" style={{ marginTop: 8, textAlign: 'center' }}>

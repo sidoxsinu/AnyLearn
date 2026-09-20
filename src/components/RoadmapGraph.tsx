@@ -110,7 +110,7 @@ export function RoadmapGraph({ course, learner, selectedID, onSelect }: RoadmapG
 
       <g transform={`translate(${pan.x}, ${pan.y})`}>
         {/* Module background bounds & title headers */}
-        {course.modules.map((mod, i) => {
+        {(course.modules || []).map((mod, i) => {
           const modNodes = nodes.filter(n => n.moduleIdx === i);
           if (modNodes.length === 0) return null;
           const minX = Math.min(...modNodes.map(n => n.x));
@@ -388,9 +388,10 @@ function layoutGraph(course: Course, learner: LearnerState) {
   const completedSet = new Set(learner.completedLessonIDs || []);
   let globalY = 20;
 
-  course.modules.forEach((mod, mIdx) => {
-    const colCount = Math.min(2, mod.lessonIDs.length);
-    mod.lessonIDs.forEach((lid, lIdx) => {
+  (course.modules || []).forEach((mod, mIdx) => {
+    const lessonIDs = mod.lessonIDs || [];
+    const colCount = Math.max(1, Math.min(2, lessonIDs.length));
+    lessonIDs.forEach((lid, lIdx) => {
       const lesson = course.lessons[lid];
       if (!lesson) return;
 
@@ -400,7 +401,7 @@ function layoutGraph(course: Course, learner: LearnerState) {
       const y = globalY + row * (NODE_H + V_GAP);
 
       // Compute mastery
-      const conceptMasteries = lesson.conceptIDs.map(cid => learner.mastery[cid]?.probability ?? 0);
+      const conceptMasteries = (lesson.conceptIDs || []).map(cid => learner.mastery[cid]?.probability ?? 0);
       const avgMastery = conceptMasteries.length > 0
         ? conceptMasteries.reduce((a, b) => a + b, 0) / conceptMasteries.length
         : 0;

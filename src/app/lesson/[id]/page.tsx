@@ -54,14 +54,14 @@ export default function LessonPage() {
     setNotice('');
     try {
       const mod = course.modules.find(m => m.id === lesson.moduleID);
-      const concepts = lesson.conceptIDs.map(id => course.concepts.find(c => c.id === id)).filter(Boolean);
+      const concepts = (lesson.conceptIDs || []).map(id => course.concepts.find(c => c.id === id)).filter(Boolean);
       const priorLessons = (mod?.lessonIDs ?? [])
         .filter(id => id !== lessonID)
         .map(id => course.lessons[id])
         .filter(Boolean)
-        .map(l => ({ title: l!.title, conceptIDs: l!.conceptIDs }));
+        .map(l => ({ title: l!.title, conceptIDs: l!.conceptIDs || [] }));
       const mastery = Object.fromEntries(
-        lesson.conceptIDs.map(cid => [cid, learner.mastery[cid]?.probability ?? 0])
+        (lesson.conceptIDs || []).map(cid => [cid, learner.mastery[cid]?.probability ?? 0])
       );
 
       const { system, user } = Prompts.lesson(
@@ -163,7 +163,7 @@ export default function LessonPage() {
               <span>Learning Objectives</span>
             </div>
             <ul className="flex flex-col gap-2 text-xs md:text-sm font-bold text-black">
-              {lesson.objectives.map((obj, i) => (
+              {(lesson.objectives || []).map((obj, i) => (
                 <li key={i} className="flex items-start gap-2.5">
                   <span className="font-black text-black">{i + 1}.</span>
                   <span>{obj}</span>
@@ -201,9 +201,9 @@ export default function LessonPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-6">
-              {lesson.blocks.map(block => (
+              {(lesson.blocks || []).map((block, idx) => (
                 <BlockRenderer
-                  key={block.id}
+                  key={block?.id || `block-${idx}`}
                   block={block}
                   onFlag={id => router.push(`/report/${lessonID}?blockId=${id}`)}
                 />
@@ -218,7 +218,7 @@ export default function LessonPage() {
                   </div>
                   <h3 className="text-base md:text-lg font-black mb-3 text-black">{lesson.task.title}</h3>
                   <div className="flex flex-col gap-2 text-xs md:text-sm mb-4 font-bold text-black">
-                    {lesson.task.instructions.map((ins, i) => (
+                    {(lesson.task.instructions || []).map((ins, i) => (
                       <div key={i} className="flex items-start gap-2">
                         <span className="font-black">{i + 1}.</span>
                         <span>{ins}</span>
@@ -231,7 +231,7 @@ export default function LessonPage() {
                       <span>✓</span>
                       <span>Success Criteria</span>
                     </div>
-                    {lesson.task.successCriteria.map((sc, i) => (
+                    {(lesson.task.successCriteria || []).map((sc, i) => (
                       <div key={i} className="text-xs font-bold mb-1 flex items-center gap-1.5 text-black">
                         <span>✓</span>
                         <span>{sc}</span>
@@ -242,11 +242,11 @@ export default function LessonPage() {
               )}
 
               {/* Sources */}
-              {lesson.sources.length > 0 && (
+              {(lesson.sources || []).length > 0 && (
                 <div className="mt-4 pt-4 border-t-2 border-black">
                   <div className="text-xs font-black uppercase tracking-wider mb-2 text-neutral-600">Sources</div>
-                  {lesson.sources.map(src => (
-                    <div key={src.id} className="text-xs">
+                  {(lesson.sources || []).map((src, i) => (
+                    <div key={src.id || src.url || i} className="text-xs">
                       <a href={src.url} target="_blank" rel="noreferrer" className="font-bold underline text-black hover:text-[#8B5CF6]">
                         🔗 {src.title}
                       </a>

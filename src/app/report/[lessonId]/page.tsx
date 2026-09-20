@@ -13,7 +13,11 @@ export function constructAfterLesson(
   lessonID: string
 ): Lesson {
   const afterLesson: Lesson = JSON.parse(JSON.stringify(lesson));
-  for (const op of patchOps) {
+  if (!Array.isArray(afterLesson.blocks)) {
+    afterLesson.blocks = [];
+  }
+  const ops = Array.isArray(patchOps) ? patchOps : [];
+  for (const op of ops) {
     if (op.type === 'replaceBlock' && op.lessonID === lessonID) {
       const idx = afterLesson.blocks.findIndex(b => b.id === op.blockID);
       if (idx !== -1) afterLesson.blocks[idx] = op.block;
@@ -100,13 +104,13 @@ function ReportContent() {
         ...(blockId ? { blockId } : {}),
       };
       const mastery = Object.fromEntries(
-        lesson.conceptIDs.map(cid => [cid, learner.mastery[cid]?.probability ?? 0])
+        (lesson.conceptIDs || []).map(cid => [cid, learner.mastery[cid]?.probability ?? 0])
       );
-      const neighbors = course.modules
-        .flatMap(m => m.lessonIDs.map(id => course.lessons[id]))
+      const neighbors = (course.modules || [])
+        .flatMap(m => (m.lessonIDs || []).map(id => course.lessons[id]))
         .filter(l => l && l.id !== lessonID)
         .slice(0, 5)
-        .map(l => ({ title: l!.title, conceptIDs: l!.conceptIDs }));
+        .map(l => ({ title: l!.title, conceptIDs: l!.conceptIDs || [] }));
 
       const { system: dSys, user: dUser } = Prompts.diagnoseAndFix(
         course.goal, report, lesson, neighbors, mastery
@@ -191,7 +195,7 @@ function ReportContent() {
             <div className="bg-white rounded-3xl p-6 border border-black/5 shadow-dei-card mb-5">
               <div className="text-xs font-black uppercase tracking-wider text-black/50 mb-2">Changes Applied</div>
               <div className="text-sm font-bold text-black mb-3">{fixPlan.patch.summary}</div>
-              {fixPlan.patch.ops.map((op, i) => (
+              {(fixPlan.patch.ops || []).map((op, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs text-black/70 mb-2">
                   <span className="badge badge-blue">{op.type}</span>
                   <span>{'reason' in op ? op.reason : ''}</span>
