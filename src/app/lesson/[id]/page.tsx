@@ -130,67 +130,77 @@ export default function LessonPage() {
   const hasQuiz = (course.quizzes[lessonID]?.length ?? 0) > 0;
 
   return (
-    <div className="page">
-      {/* Navbar */}
-      <nav className="navbar">
-        <button className="btn btn-ghost btn-sm" onClick={() => router.push('/roadmap')}>
+    <div className="w-full h-full flex flex-col relative select-none">
+      {/* Top Header inside panel */}
+      <div className="flex items-center justify-between gap-4 pb-4 border-b border-black/5 shrink-0">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => router.push('/roadmap')}
+        >
           ← Roadmap
         </button>
-        <div style={{ flex: 1, textAlign: 'center' }}>
-          <div className="text-xs text-muted">{mod?.title}</div>
-          <div className="text-sm" style={{ fontWeight: 600 }}>{lesson.title}</div>
+
+        <div className="flex-1 text-center truncate px-2">
+          <div className="text-[11px] font-bold text-black/50 uppercase tracking-wider">{mod?.title}</div>
+          <div className="text-base md:text-lg font-extrabold text-[#0F1117] truncate">{lesson.title}</div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <span className={`badge badge-${lesson.confidence === 'high' ? 'green' : lesson.confidence === 'medium' ? 'blue' : 'amber'}`}>
+
+        <div className="flex items-center gap-2">
+          <span className={`badge ${lesson.confidence === 'high' ? 'badge-green' : lesson.confidence === 'medium' ? 'badge-blue' : 'badge-amber'}`}>
             {lesson.confidence}
           </span>
-          {lesson.unsourced && <span className="badge badge-amber">unsourced</span>}
+          {isCompleted && <span className="badge badge-green">✓ Completed</span>}
         </div>
-      </nav>
+      </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '32px 0 120px' }}>
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto py-6 pb-24">
         <div className="container container-sm">
-          {/* Objectives */}
-          <div className="card-sm" style={{ marginBottom: 32 }}>
-            <div className="text-xs text-muted" style={{ fontWeight: 600, marginBottom: 8 }}>LEARNING OBJECTIVES</div>
-            {lesson.objectives.map((obj, i) => (
-              <div key={i} className="text-sm" style={{ marginBottom: 4, color: 'var(--text-2)' }}>
-                {i + 1}. {obj}
-              </div>
-            ))}
+          {/* Objectives Card in Brutalist Sky Blue */}
+          <div className="brutal-card p-5 sm:p-6 mb-6 bg-[#E0F2FE]">
+            <div className="text-xs font-black uppercase tracking-wider mb-2.5 flex items-center gap-1.5 text-black">
+              <span>🎯</span>
+              <span>Learning Objectives</span>
+            </div>
+            <ul className="flex flex-col gap-2 text-xs md:text-sm font-bold text-black">
+              {lesson.objectives.map((obj, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <span className="font-black text-black">{i + 1}.</span>
+                  <span>{obj}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* Demo Notice */}
           {notice && (
-            <div className="card" style={{ marginBottom: 24, borderColor: 'rgba(249,115,22,0.3)', background: 'rgba(249,115,22,0.06)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 20 }}>ℹ</span>
-                <div className="text-sm" style={{ color: 'var(--text-1)' }}>
-                  {notice}
-                </div>
+            <div className="brutal-card p-4 mb-6 bg-[#FEF3C7] flex items-center gap-3">
+              <span className="text-xl">ℹ️</span>
+              <div className="text-xs md:text-sm font-black text-black">
+                {notice}
               </div>
             </div>
           )}
 
-          {/* Blocks */}
+          {/* Lesson Content Blocks */}
           {generating ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {[200, 80, 120, 80].map((h, i) => (
-                <div key={i} className="skeleton" style={{ height: h, borderRadius: 12 }} />
+            <div className="flex flex-col gap-4 py-8">
+              {[180, 70, 110].map((h, i) => (
+                <div key={i} className="bg-black/5 animate-pulse rounded-2xl" style={{ height: h }} />
               ))}
-              <div className="text-sm text-muted" style={{ textAlign: 'center', marginTop: 8 }}>
-                Generating lesson content… <span className="spinner" style={{ verticalAlign: 'middle', width: 14, height: 14, borderWidth: 2 }} />
+              <div className="text-sm font-bold text-center flex items-center justify-center gap-2 mt-4" style={{ color: '#4B5563' }}>
+                <span>Generating lesson content…</span>
+                <span className="spinner" />
               </div>
             </div>
           ) : error ? (
-            <div className="card" style={{ borderColor: 'rgba(239,68,68,0.3)', textAlign: 'center' }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>⚠</div>
-              <div className="text-muted text-sm" style={{ marginBottom: 16 }}>{error}</div>
-              <button className="btn btn-secondary" onClick={generateLesson}>Retry</button>
+            <div className="bg-red-50 rounded-2xl p-6 border border-red-200 text-center">
+              <div className="text-3xl mb-2">⚠️</div>
+              <div className="text-sm text-red-700 font-medium mb-4">{error}</div>
+              <button className="btn btn-secondary btn-sm" onClick={generateLesson}>Retry</button>
             </div>
           ) : (
-            <>
+            <div className="flex flex-col gap-6">
               {lesson.blocks.map(block => (
                 <BlockRenderer
                   key={block.id}
@@ -199,21 +209,33 @@ export default function LessonPage() {
                 />
               ))}
 
-              {/* Task card */}
+              {/* Hands-On Task Card in Brutalist Yellow */}
               {lesson.task && (
-                <div className="card" style={{ marginTop: 24, borderColor: 'var(--border-accent)' }}>
-                  <div className="text-xs text-accent" style={{ fontWeight: 700, marginBottom: 10, letterSpacing: '0.06em' }}>HANDS-ON TASK</div>
-                  <h3 className="text-lg" style={{ fontWeight: 700, marginBottom: 12 }}>{lesson.task.title}</h3>
-                  {lesson.task.instructions.map((ins, i) => (
-                    <div key={i} className="text-sm" style={{ marginBottom: 8 }}>
-                      <span className="text-accent" style={{ fontWeight: 700, marginRight: 8 }}>{i + 1}.</span>
-                      {ins}
+                <div className="brutal-card p-5 md:p-6 mt-4 bg-[#FFE600]">
+                  <div className="text-xs font-black uppercase tracking-wider mb-2 flex items-center gap-1.5 text-black">
+                    <span>⭐</span>
+                    <span>Hands-On Task</span>
+                  </div>
+                  <h3 className="text-base md:text-lg font-black mb-3 text-black">{lesson.task.title}</h3>
+                  <div className="flex flex-col gap-2 text-xs md:text-sm mb-4 font-bold text-black">
+                    {lesson.task.instructions.map((ins, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <span className="font-black">{i + 1}.</span>
+                        <span>{ins}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-4 border-2 border-black rounded bg-white">
+                    <div className="text-xs font-black uppercase tracking-wider mb-2 flex items-center gap-1 text-black">
+                      <span>✓</span>
+                      <span>Success Criteria</span>
                     </div>
-                  ))}
-                  <div style={{ marginTop: 16, padding: '12px 16px', background: 'rgba(34,197,94,0.06)', borderRadius: 10, border: '1px solid rgba(34,197,94,0.15)' }}>
-                    <div className="text-xs" style={{ color: 'var(--mastery-solid)', fontWeight: 700, marginBottom: 6 }}>SUCCESS CRITERIA</div>
                     {lesson.task.successCriteria.map((sc, i) => (
-                      <div key={i} className="text-sm text-muted" style={{ marginBottom: 4 }}>✓ {sc}</div>
+                      <div key={i} className="text-xs font-bold mb-1 flex items-center gap-1.5 text-black">
+                        <span>✓</span>
+                        <span>{sc}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -221,62 +243,55 @@ export default function LessonPage() {
 
               {/* Sources */}
               {lesson.sources.length > 0 && (
-                <div style={{ marginTop: 24 }}>
-                  <div className="text-xs text-muted" style={{ marginBottom: 8, fontWeight: 600 }}>SOURCES</div>
+                <div className="mt-4 pt-4 border-t-2 border-black">
+                  <div className="text-xs font-black uppercase tracking-wider mb-2 text-neutral-600">Sources</div>
                   {lesson.sources.map(src => (
-                    <div key={src.id} className="text-sm" style={{ marginBottom: 4 }}>
-                      <a href={src.url} target="_blank" rel="noreferrer" className="text-accent">{src.title}</a>
+                    <div key={src.id} className="text-xs">
+                      <a href={src.url} target="_blank" rel="noreferrer" className="font-bold underline text-black hover:text-[#8B5CF6]">
+                        🔗 {src.title}
+                      </a>
                     </div>
                   ))}
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Sticky footer */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'var(--glass-bg)',
-        backdropFilter: 'var(--glass-blur)',
-        WebkitBackdropFilter: 'var(--glass-blur)',
-        borderTop: '1px solid var(--glass-border)',
-        padding: '12px 20px',
-        display: 'flex',
-        gap: 10,
-        alignItems: 'center',
-        zIndex: 50,
-      }}>
-        {!isCompleted && lesson.status === 'ready' && (
+      {/* Sticky Bottom Actions inside main view */}
+      <div className="sticky bottom-4 mt-6 p-4 bg-white border-[3px] border-black shadow-[4px_4px_0px_#000000] rounded-lg flex items-center justify-between gap-3 z-30">
+        <div>
+          {!isCompleted && lesson.status === 'ready' && (
+            <button
+              className="brutal-btn brutal-btn-sm brutal-btn-accent"
+              onClick={() => completeLesson(lessonID)}
+            >
+              ✓ Mark Complete
+            </button>
+          )}
+          {isCompleted && <span className="brutal-badge bg-[#00F59B]">✓ Mastered</span>}
+        </div>
+
+        <div className="flex items-center gap-2">
           <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => completeLesson(lessonID)}
+            id="report-fix-btn"
+            className="brutal-btn brutal-btn-sm bg-white"
+            onClick={() => router.push(`/report/${lessonID}`)}
           >
-            ✓ Mark complete
+            ⚑ Report
           </button>
-        )}
-        {isCompleted && <span className="badge badge-green">✓ Completed</span>}
-
-        <div style={{ flex: 1 }} />
-
-        <button
-          id="report-fix-btn"
-          className="btn btn-secondary btn-sm"
-          style={{ borderColor: 'var(--border-accent)', color: 'var(--accent)' }}
-          onClick={() => router.push(`/report/${lessonID}`)}
-        >
-          ⚑ Report / Fix
-        </button>
-        <button
-          id="take-quiz-btn"
-          className="btn btn-primary"
-          onClick={() => router.push(`/quiz/${lessonID}`)}
-          disabled={!hasQuiz && lesson.status !== 'ready'}
-        >
-          Take Quiz →
-        </button>
+          <button
+            id="take-quiz-btn"
+            className="brutal-btn brutal-btn-sm brutal-btn-primary"
+            onClick={() => router.push(`/quiz/${lessonID}`)}
+            disabled={!hasQuiz && lesson.status !== 'ready'}
+          >
+            Take Quiz ⏱️
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+

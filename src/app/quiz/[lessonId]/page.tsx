@@ -211,116 +211,115 @@ export default function QuizPage() {
     });
 
     return (
-      <div className="page" style={{ overflowY: 'auto' }}>
-        <nav className="navbar">
-          <button className="btn btn-ghost btn-sm" onClick={() => router.push(`/lesson/${lessonID}`)}>← Lesson</button>
-          <span className="text-sm text-muted">Quiz Complete</span>
-          <button className="btn btn-ghost btn-sm" onClick={() => router.push('/roadmap')}>Roadmap</button>
-        </nav>
+      <div className="w-full h-full flex flex-col relative select-none">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-black/5 shrink-0">
+          <button className="btn btn-secondary btn-sm" onClick={() => router.push(`/lesson/${lessonID}`)}>
+            ← Lesson
+          </button>
+          <span className="text-sm font-extrabold text-[#0F1117]">Quiz Results</span>
+          <button className="btn btn-secondary btn-sm" onClick={() => router.push('/roadmap')}>
+            Roadmap →
+          </button>
+        </div>
 
-        <div style={{ maxWidth: 640, margin: '48px auto', padding: '0 20px' }}>
-          {/* Score */}
-          <div className="card" style={{ textAlign: 'center', marginBottom: 24, padding: 32 }}>
-            <div style={{ fontSize: 56, marginBottom: 12 }}>
-              {score >= 0.8 ? '🎉' : score >= 0.5 ? '💪' : '📚'}
-            </div>
-            <div className="text-3xl" style={{ marginBottom: 4 }}>
-              {correctCount}/{questions.length} correct
-            </div>
-            <div className="text-muted">{score >= 0.8 ? 'Excellent!' : score >= 0.5 ? 'Good progress' : 'Keep practising'}</div>
-          </div>
-
-          {/* Mastery bars */}
-          <div className="card" style={{ marginBottom: 24 }}>
-            <div className="text-sm" style={{ fontWeight: 600, marginBottom: 16 }}>Concept Mastery</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {lesson.conceptIDs.map(cid => {
-                const concept = course.concepts.find(c => c.id === cid);
-                const record = learner.mastery[cid];
-                return (
-                  <div key={cid}>
-                    <MasteryBar
-                      probability={record?.probability ?? 0}
-                      conceptName={concept?.name ?? cid}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Weak concept notice */}
-          {weakConcepts.length > 0 && (
-            <div
-              className="card"
-              style={{
-                borderColor: adaptationState.status === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)',
-                background: adaptationState.status === 'error' ? 'rgba(239,68,68,0.04)' : 'rgba(245,158,11,0.04)',
-                marginBottom: 24,
-              }}
-            >
-              <div
-                className="text-sm"
-                style={{
-                  color: adaptationState.status === 'error' ? '#ef4444' : 'var(--mastery-weak)',
-                  fontWeight: 600,
-                  marginBottom: 8,
-                }}
-              >
-                {adaptationState.status === 'applied'
-                  ? '✓ Adaptive update applied'
-                  : adaptationState.status === 'running'
-                  ? '⏳ Generating adaptive update…'
-                  : adaptationState.status === 'error'
-                  ? '⚠ Adaptive update failed'
-                  : '⚠ Adaptive update triggered'}
+        <div className="flex-1 overflow-y-auto py-6 pb-20">
+          <div className="max-w-2xl mx-auto flex flex-col gap-6">
+            {/* Score Card in Brutalist Mint */}
+            <div className="brutal-card p-8 text-center bg-[#00F59B]">
+              <div className="text-5xl mb-3">
+                {score >= 0.8 ? '🎉' : score >= 0.5 ? '💪' : '📚'}
               </div>
-              <div className="text-sm text-muted">
-                {adaptationState.status === 'applied'
-                  ? `Your roadmap was updated: ${adaptationState.summary ?? 'A remedial review lesson was added.'}`
-                  : adaptationState.status === 'running'
-                  ? 'Analyzing your struggle areas and generating a remedial path…'
-                  : adaptationState.status === 'error'
-                  ? `Could not apply patch: ${adaptationState.error}`
-                  : `You're struggling with ${weakConcepts.length} concept${weakConcepts.length > 1 ? 's' : ''}. The roadmap will be updated to add a remedial path.`}
+              <div className="text-3xl font-black text-black mb-1">
+                {correctCount} of {questions.length} Correct
               </div>
-              <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {weakConcepts.map(cid => {
-                  const c = course.concepts.find(x => x.id === cid);
-                  return <span key={cid} className="badge badge-amber">{c?.name ?? cid}</span>;
+              <div className="text-sm font-black text-black">
+                {score >= 0.8 ? 'Mastery Achieved!' : score >= 0.5 ? 'Good Progress — Keep Going!' : 'Reviewing concepts is part of the process!'}
+              </div>
+            </div>
+
+            {/* Mastery Bars */}
+            <div className="brutal-card p-6 bg-white">
+              <div className="text-xs font-black uppercase tracking-wider text-black mb-4 flex items-center gap-1.5">
+                <span>🧠</span>
+                <span>Concept Mastery Updated</span>
+              </div>
+              <div className="flex flex-col gap-3">
+                {lesson.conceptIDs.map(cid => {
+                  const concept = course.concepts.find(c => c.id === cid);
+                  const record = learner.mastery[cid];
+                  return (
+                    <div key={cid}>
+                      <MasteryBar
+                        probability={record?.probability ?? 0}
+                        conceptName={concept?.name ?? cid}
+                      />
+                    </div>
+                  );
                 })}
               </div>
             </div>
-          )}
 
-          {/* Question review */}
-          <div className="card" style={{ marginBottom: 24 }}>
-            <div className="text-sm" style={{ fontWeight: 600, marginBottom: 16 }}>Review</div>
-            {results.map((r, i) => (
-              <div key={i} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < results.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                <div className="text-sm" style={{ marginBottom: 6, fontWeight: 500 }}>
-                  {i + 1}. {r.question.prompt}
+            {/* Weak concept adaptive notice */}
+            {weakConcepts.length > 0 && (
+              <div className="brutal-card p-6 bg-[#FEF3C7]">
+                <div className="text-sm font-black text-black mb-2 flex items-center gap-2">
+                  <span>⚡</span>
+                  <span>
+                    {adaptationState.status === 'applied'
+                      ? 'Adaptive Path Generated & Applied'
+                      : adaptationState.status === 'running'
+                      ? 'Analyzing Struggle Areas…'
+                      : 'Adaptive Reinforcement Triggered'}
+                  </span>
                 </div>
-                <div className="text-xs" style={{ color: r.correct ? 'var(--mastery-solid)' : '#f87171', marginBottom: 4 }}>
-                  {r.correct ? '✓ Correct' : `✗ You chose: ${r.option.text}`}
+                <p className="text-xs text-black font-semibold leading-relaxed">
+                  {adaptationState.status === 'applied'
+                    ? `Your roadmap was updated: ${adaptationState.summary ?? 'A targeted remedial review was inserted.'}`
+                    : `We noticed struggle areas in ${weakConcepts.length} concept(s). Your learning path adapts automatically.`}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {weakConcepts.map(cid => {
+                    const c = course.concepts.find(x => x.id === cid);
+                    return <span key={cid} className="brutal-badge bg-white">{c?.name ?? cid}</span>;
+                  })}
                 </div>
-                {!r.correct && (
-                  <div className="text-xs text-muted" style={{ marginBottom: 4 }}>
-                    {r.option.misconception && <em>Misconception: {r.option.misconception}</em>}
-                  </div>
-                )}
-                <div className="text-xs text-muted">{r.question.explanation}</div>
               </div>
-            ))}
-          </div>
+            )}
 
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => router.push(`/lesson/${lessonID}`)}>
-              Back to Lesson
-            </button>
-            <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => router.push('/roadmap')}>
-              Roadmap →
-            </button>
+            {/* Question Review */}
+            <div className="brutal-card p-6 bg-white">
+              <div className="text-xs font-black uppercase tracking-wider text-black mb-4">
+                Detailed Review
+              </div>
+              <div className="flex flex-col gap-4">
+                {results.map((r, i) => (
+                  <div key={i} className="pb-4 border-b-2 border-black/10 last:border-b-0">
+                    <div className="text-sm font-black text-black mb-1.5">
+                      {i + 1}. {r.question.prompt}
+                    </div>
+                    <div className={`text-xs font-black mb-1 ${r.correct ? 'text-green-700' : 'text-red-600'}`}>
+                      {r.correct ? '✓ Correct' : `✗ Selected: ${r.option.text}`}
+                    </div>
+                    {!r.correct && r.option.misconception && (
+                      <div className="text-xs text-amber-900 bg-amber-50 border border-black rounded p-2 mb-1.5 font-bold">
+                        💡 Common confusion: {r.option.misconception}
+                      </div>
+                    )}
+                    <div className="text-xs text-neutral-700 font-medium leading-relaxed">{r.question.explanation}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button className="brutal-btn bg-white flex-1" onClick={() => router.push(`/lesson/${lessonID}`)}>
+                Back to Lesson
+              </button>
+              <button className="brutal-btn brutal-btn-primary flex-1" onClick={() => router.push('/roadmap')}>
+                Roadmap →
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -328,75 +327,96 @@ export default function QuizPage() {
   }
 
   return (
-    <div className="page">
-      <nav className="navbar">
-        <button className="btn btn-ghost btn-sm" onClick={() => router.push(`/lesson/${lessonID}`)}>← Lesson</button>
-        <div style={{ textAlign: 'center' }}>
-          <div className="text-xs text-muted">Question {step + 1} of {questions.length}</div>
-          <div className="text-sm" style={{ fontWeight: 600 }}>{lesson.title}</div>
+    <div className="w-full flex flex-col relative select-none">
+      {/* Quiz Header */}
+      <div className="flex items-center justify-between pb-4 border-b-2 border-black shrink-0">
+        <button className="brutal-btn brutal-btn-sm bg-white" onClick={() => router.push(`/lesson/${lessonID}`)}>
+          ← Lesson
+        </button>
+        <div className="text-center">
+          <div className="text-xs font-black uppercase tracking-wider text-neutral-600">
+            Question {step + 1} of {questions.length}
+          </div>
+          <div className="text-base font-black text-black">{lesson.title}</div>
         </div>
-        <span className="badge badge-gray">{step + 1}/{questions.length}</span>
-      </nav>
-
-      {/* Progress */}
-      <div className="progress-bar-track" style={{ borderRadius: 0 }}>
-        <div className="progress-bar-fill" style={{ width: `${((step) / questions.length) * 100}%` }} />
+        <span className="brutal-badge bg-white">{step + 1}/{questions.length}</span>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '40px 0 120px' }}>
-        <div className="container container-sm">
-          {/* Difficulty */}
-          <div style={{ marginBottom: 12 }}>
-            <span className={`badge badge-${q.difficulty === 1 ? 'green' : q.difficulty === 2 ? 'blue' : 'amber'}`}>
+      {/* Progress Track */}
+      <div className="w-full h-3 border-2 border-black bg-white rounded my-4 overflow-hidden">
+        <div className="h-full bg-[#FFE600] border-r-2 border-black transition-all" style={{ width: `${((step + 1) / questions.length) * 100}%` }} />
+      </div>
+
+      {/* Main Question Area */}
+      <div className="flex-1 pb-24">
+        <div className="max-w-2xl mx-auto py-2">
+          <div className="mb-3">
+            <span className={`brutal-badge ${q.difficulty === 1 ? 'bg-[#00F59B]' : q.difficulty === 2 ? 'bg-[#38BDF8]' : 'bg-[#FFE600]'}`}>
               {q.difficulty === 1 ? 'Recall' : q.difficulty === 2 ? 'Apply' : 'Transfer'}
             </span>
           </div>
 
-          {/* Question */}
-          <h2 className="text-2xl" style={{ marginBottom: 32, lineHeight: 1.4 }}>{q.prompt}</h2>
+          <h2 className="text-xl md:text-2xl font-black text-black leading-snug mb-6">
+            {q.prompt}
+          </h2>
 
           {/* Options */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+          <div className="flex flex-col gap-3 mb-6">
             {shuffledOptions.map((opt, i) => {
               const isSelected = selected?.id === opt.id;
               const isCorrect = answered && opt.id === q.correctOptionID;
               const isWrong = answered && isSelected && !isCorrect;
               const isUnselected = answered && !isSelected && opt.id !== q.correctOptionID;
+
               return (
                 <button
                   key={opt.id}
                   id={`option-${i + 1}`}
-                  className={`quiz-option ${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''} ${isUnselected ? 'unselected-after-answer' : ''}`}
                   onClick={() => handleSelect(opt)}
                   disabled={answered}
-                  style={{ borderColor: isSelected && !answered ? 'var(--accent)' : undefined }}
+                  className={`w-full text-left p-4 rounded border-[3px] border-black transition-all flex items-center gap-3.5 ${
+                    isSelected && !answered
+                      ? 'bg-black text-white shadow-[4px_4px_0px_#FFE600]'
+                      : isCorrect
+                      ? 'bg-[#00F59B] text-black shadow-[4px_4px_0px_#000000]'
+                      : isWrong
+                      ? 'bg-[#FF5A36] text-white shadow-[4px_4px_0px_#000000]'
+                      : isUnselected
+                      ? 'bg-white opacity-40 shadow-[2px_2px_0px_#000000]'
+                      : 'bg-white hover:bg-[#FAF8F5] text-black shadow-[4px_4px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px]'
+                  }`}
                 >
-                  <span style={{
-                    width: 24, height: 24, borderRadius: '50%',
-                    background: isSelected && !answered ? 'var(--accent)' : isCorrect ? 'var(--mastery-solid)' : isWrong ? '#ef4444' : 'var(--bg-4)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, fontWeight: 700, flexShrink: 0,
-                    color: (isSelected || isCorrect || isWrong) ? '#fff' : 'var(--text-3)',
-                    transition: 'all 200ms ease',
-                  }}>
+                  <span
+                    className={`w-7 h-7 rounded border-2 border-black flex items-center justify-center font-black text-xs shrink-0 ${
+                      isSelected && !answered
+                        ? 'bg-white text-black'
+                        : isCorrect
+                        ? 'bg-black text-white'
+                        : isWrong
+                        ? 'bg-black text-white'
+                        : 'bg-[#FFE600] text-black'
+                    }`}
+                  >
                     {answered ? (isCorrect ? '✓' : isWrong ? '✗' : String.fromCharCode(65 + i)) : String.fromCharCode(65 + i)}
                   </span>
-                  <span style={{ flex: 1, textAlign: 'left' }}>{opt.text}</span>
+                  <span className="text-sm font-bold flex-1">{opt.text}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Explanation (after answer) */}
+          {/* Explanation Banner */}
           {answered && (
-            <div className="card animate-fadeIn" style={{ marginBottom: 16 }}>
-              <div className="text-sm" style={{ fontWeight: 600, marginBottom: 8 }}>
-                {selected?.id === q.correctOptionID ? '✓ Correct!' : '✗ Not quite'}
+            <div className="brutal-card p-5 bg-[#E0F2FE] animate-fadeIn">
+              <div className="text-xs font-black uppercase text-black tracking-wider mb-1 flex items-center gap-1.5">
+                <span>{selected?.id === q.correctOptionID ? '🎉 Correct!' : '💡 Key Insight'}</span>
               </div>
-              <div className="text-sm text-muted" style={{ lineHeight: 1.6 }}>{q.explanation}</div>
+              <p className="text-xs md:text-sm text-black font-bold leading-relaxed">
+                {q.explanation}
+              </p>
               {selected && selected.id !== q.correctOptionID && selected.misconception && (
-                <div className="text-xs" style={{ marginTop: 10, color: 'var(--mastery-weak)', fontStyle: 'italic' }}>
-                  Common confusion: {selected.misconception}
+                <div className="mt-2 text-xs text-amber-900 bg-amber-100 border border-black rounded p-2 font-bold">
+                  Note: {selected.misconception}
                 </div>
               )}
             </div>
@@ -404,32 +424,28 @@ export default function QuizPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur)',
-        borderTop: '1px solid var(--glass-border)',
-        padding: '12px 20px', display: 'flex', gap: 10, zIndex: 50,
-      }}>
+      {/* Sticky Bottom Actions */}
+      <div className="sticky bottom-4 mt-6 p-4 bg-white border-[3px] border-black shadow-[4px_4px_0px_#000000] rounded-lg flex items-center justify-center z-30">
         {!answered ? (
           <button
             id="confirm-answer-btn"
-            className="btn btn-primary btn-full btn-lg"
+            className="brutal-btn brutal-btn-primary w-full md:w-80"
             onClick={handleConfirm}
             disabled={!selected}
           >
-            Confirm Answer
+            Confirm Answer ✓
           </button>
         ) : (
           <button
             id="next-question-btn"
-            className="btn btn-primary btn-full btn-lg"
+            className="brutal-btn brutal-btn-primary w-full md:w-80"
             onClick={handleNext}
           >
-            {isLastQuestion ? 'See Results →' : 'Next Question →'}
+            {isLastQuestion ? 'See Results 🎉' : 'Next Question →'}
           </button>
         )}
       </div>
     </div>
   );
 }
+

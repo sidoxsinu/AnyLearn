@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import '../styles/globals.css';
+import './globals.css';
+import { AppShell } from '@/components/AppShell';
 
 export const metadata: Metadata = {
   title: 'AnyLearn — Your Living Learning Path',
@@ -16,7 +17,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body
+        className="font-sans antialiased min-h-screen"
+        style={{ margin: 0, padding: 0, backgroundColor: '#F4F0EA', color: '#000000' }}
+      >
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }
+

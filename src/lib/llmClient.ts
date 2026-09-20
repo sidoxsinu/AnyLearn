@@ -129,10 +129,17 @@ export async function generate<T>(
 // API key management (stored in localStorage, with env var fallback)
 export const ApiKeyStore = {
   get(): string {
-    const envKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
-                   process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
-    if (typeof window === 'undefined') return envKey;
-    return localStorage.getItem('anylearn-gemini-key') || envKey;
+    // Operator-configured env key always wins — prevents stale localStorage
+    // Gemini keys from overriding the configured OpenAI key.
+    const openaiEnvKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || '';
+    if (openaiEnvKey) return openaiEnvKey;
+    // User-supplied key from localStorage
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('anylearn-gemini-key');
+      if (stored) return stored;
+    }
+    // Legacy Gemini env var fallback
+    return process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
   },
   set(key: string): void {
     localStorage.setItem('anylearn-gemini-key', key.trim());

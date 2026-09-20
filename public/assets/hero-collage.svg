@@ -1,0 +1,81 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="hero-card-shadow-1" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-opacity="0.12" />
+    </filter>
+    <filter id="hero-card-shadow-2" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-opacity="0.16" />
+    </filter>
+  </defs>
+
+  <!-- Background decorative glows -->
+  <circle cx="180" cy="240" r="140" fill="#CFF7D3" fill-opacity="0.4" filter="blur(60px)" />
+  <circle cx="460" cy="200" r="150" fill="#F1D3FA" fill-opacity="0.35" filter="blur(70px)" />
+  <circle cx="320" cy="360" r="130" fill="#D5F1F7" fill-opacity="0.4" filter="blur(60px)" />
+
+  <!-- 1. Back Left Card: Sky Blue (#D5F1F7) tilted -6deg -->
+  <g transform="translate(60, 80) rotate(-6)">
+    <rect width="240" height="280" rx="32" fill="#D5F1F7" filter="url(#hero-card-shadow-1)" />
+    <!-- Header pill -->
+    <rect x="24" y="24" width="70" height="28" rx="14" fill="#0A0A0A" />
+    <text x="59" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">VIDEO 🎥</text>
+    <!-- Content lines -->
+    <rect x="24" y="80" width="180" height="18" rx="6" fill="#0A0A0A" fill-opacity="0.9" />
+    <rect x="24" y="108" width="120" height="12" rx="4" fill="#0A0A0A" fill-opacity="0.5" />
+    <!-- Big play button circle -->
+    <circle cx="120" cy="180" r="36" fill="#0A0A0A" />
+    <path d="M112 165 L135 180 L112 195 Z" fill="#D5F1F7" />
+  </g>
+
+  <!-- 2. Back Right Card: Butter Yellow (#FBE8B0) tilted +7deg -->
+  <g transform="translate(340, 100) rotate(7)">
+    <rect width="250" height="290" rx="32" fill="#FBE8B0" filter="url(#hero-card-shadow-1)" />
+    <!-- Tip badge -->
+    <rect x="24" y="24" width="90" height="28" rx="14" fill="#0A0A0A" />
+    <text x="69" y="42" fill="#FBE8B0" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">PRO TIP 💡</text>
+    <!-- Card title and mastery circle -->
+    <rect x="24" y="76" width="170" height="16" rx="5" fill="#0A0A0A" fill-opacity="0.85" />
+    <rect x="24" y="102" width="130" height="10" rx="4" fill="#0A0A0A" fill-opacity="0.4" />
+    <!-- Mastery progress track -->
+    <rect x="24" y="130" width="200" height="12" rx="6" fill="#0A0A0A" fill-opacity="0.1" />
+    <rect x="24" y="130" width="150" height="12" rx="6" fill="#22C55E" />
+    <text x="24" y="170" fill="#0A0A0A" font-family="system-ui, sans-serif" font-size="14" font-weight="bold">Mastery: 75% Solid</text>
+  </g>
+
+  <!-- 3. Center Featured Card: Lavender (#F1D3FA) tilted -4deg (Foreground) -->
+  <g transform="translate(190, 140) rotate(-4)">
+    <rect width="280" height="300" rx="36" fill="#F1D3FA" stroke="#FFFFFF" stroke-width="2" filter="url(#hero-card-shadow-2)" />
+    <!-- Active Step Pill -->
+    <rect x="24" y="24" width="120" height="32" rx="16" fill="#0A0A0A" />
+    <text x="84" y="44" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">NEXT UP 🎯</text>
+    <!-- Title -->
+    <text x="24" y="96" fill="#0A0A0A" font-family="system-ui, sans-serif" font-size="22" font-weight="800">PCB Layer Stackup</text>
+    <text x="24" y="122" fill="#0A0A0A" fill-opacity="0.7" font-family="system-ui, sans-serif" font-size="13">Lesson 2 • 4 Core Concepts</text>
+    <!-- Mini DAG nodes preview -->
+    <g transform="translate(24, 150)">
+      <rect x="0" y="0" width="64" height="40" rx="12" fill="#CFF7D3" />
+      <text x="32" y="24" fill="#0A0A0A" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">FR-4</text>
+      <line x1="64" y1="20" x2="94" y2="20" stroke="#0A0A0A" stroke-width="2" stroke-dasharray="3 3" />
+      <rect x="94" y="0" width="76" height="40" rx="12" fill="#FFFFFF" stroke="#0A0A0A" stroke-width="2" />
+      <text x="132" y="24" fill="#0A0A0A" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">Impedance</text>
+      <line x1="170" y1="20" x2="200" y2="20" stroke="#0A0A0A" stroke-width="2" stroke-dasharray="3 3" />
+      <rect x="200" y="0" width="32" height="40" rx="12" fill="#FF8FC7" />
+      <text x="216" y="24" fill="#0A0A0A" font-family="system-ui, sans-serif" font-size="12" text-anchor="middle">🔒</text>
+    </g>
+    <!-- Action CTA inside card -->
+    <rect x="24" y="224" width="232" height="46" rx="23" fill="#0A0A0A" />
+    <text x="140" y="252" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">Start Lesson 🚀</text>
+  </g>
+
+  <!-- 4. Floating Badge: Mint Pill "Completed 👏" -->
+  <g transform="translate(410, 60) rotate(4)">
+    <rect width="140" height="40" rx="20" fill="#CFF7D3" stroke="#0A0A0A" stroke-width="1.5" filter="url(#hero-card-shadow-1)" />
+    <text x="70" y="25" fill="#0A0A0A" font-family="system-ui, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">Completed 👏</text>
+  </g>
+
+  <!-- 5. Floating Badge: Pink Pill "Quiz 100% 🎉" -->
+  <g transform="translate(70, 370) rotate(-5)">
+    <rect width="140" height="40" rx="20" fill="#FF8FC7" stroke="#0A0A0A" stroke-width="1.5" filter="url(#hero-card-shadow-1)" />
+    <text x="70" y="25" fill="#0A0A0A" font-family="system-ui, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">Quiz 100% 🎉</text>
+  </g>
+</svg>

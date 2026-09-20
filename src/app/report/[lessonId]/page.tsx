@@ -141,11 +141,11 @@ function ReportContent() {
 
   if (step === 'loading') {
     return (
-      <div className="page" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="spinner" style={{ width: 40, height: 40, margin: '0 auto 20px' }} />
-          <div className="text-xl" style={{ marginBottom: 8 }}>{loadingMsg}</div>
-          <div className="text-muted text-sm">This takes 10–20 seconds…</div>
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-center p-8 bg-white rounded-3xl border border-black/5 shadow-dei-card max-w-sm">
+          <div className="spinner mb-4" />
+          <div className="text-base font-extrabold text-[#0F1117] mb-1">{loadingMsg}</div>
+          <div className="text-xs text-black/50">Analyzing and verifying your learning path…</div>
         </div>
       </div>
     );
@@ -155,143 +155,56 @@ function ReportContent() {
     const passed = verify?.verdict.toLowerCase().trim() === 'pass';
     const isSuccess = Boolean(applyResult?.success && passed);
     return (
-      <div className="page">
-        <nav className="navbar">
-          <button className="btn btn-ghost btn-sm" onClick={() => router.push(`/lesson/${lessonID}`)}>← Lesson</button>
-          <span className="text-sm" style={{ fontWeight: 600 }}>Report / Fix Result</span>
+      <div className="w-full h-full flex flex-col relative select-none">
+        <div className="flex items-center justify-between pb-3 border-b border-black/5 shrink-0">
+          <button className="btn btn-secondary btn-sm" onClick={() => router.push(`/lesson/${lessonID}`)}>
+            ← Lesson
+          </button>
+          <span className="text-sm font-extrabold text-[#0F1117]">Diagnostic & Verification Result</span>
           <div />
-        </nav>
+        </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '32px 0 40px' }}>
+        <div className="flex-1 overflow-y-auto py-6 pb-20">
           <div className="container container-sm">
-
-            {/* Learner message */}
-            <div
-              className="card"
-              style={{
-                marginBottom: 20,
-                borderColor: isSuccess
-                  ? 'rgba(34,197,94,0.3)'
-                  : !applyResult?.success
-                  ? 'rgba(239,68,68,0.3)'
-                  : 'rgba(249,115,22,0.3)',
-              }}
-            >
-              <div
-                className="text-sm"
-                style={{
-                  fontWeight: 700,
-                  marginBottom: 8,
-                  color: isSuccess
-                    ? 'var(--mastery-solid)'
-                    : !applyResult?.success
-                    ? '#ef4444'
-                    : 'var(--accent)',
-                }}
-              >
-                {isSuccess
-                  ? '✓ Fix applied & verified'
-                  : !applyResult?.success
-                  ? '✗ Fix failed to apply'
-                  : '⚠ Fix applied (needs review)'}
+            {/* Result Header Card */}
+            <div className={`rounded-3xl p-6 border shadow-dei-card mb-5 ${
+              isSuccess ? 'bg-[#D4F6D8] border-green-200 text-green-900' : 'bg-red-50 border-red-200 text-red-900'
+            }`}>
+              <div className="text-xs font-black uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <span>{isSuccess ? '✓ Fix Verified & Applied' : '⚠️ Attention Required'}</span>
               </div>
-              <div className="text-base" style={{ lineHeight: 1.7 }}>{fixPlan.learnerFacingMessage}</div>
+              <p className="text-sm md:text-base font-medium leading-relaxed">{fixPlan.learnerFacingMessage}</p>
             </div>
 
             {/* Diagnosis */}
-            <div className="card" style={{ marginBottom: 20 }}>
-              <div className="text-xs text-muted" style={{ fontWeight: 600, marginBottom: 10 }}>DIAGNOSIS</div>
-              <div className="text-sm" style={{ marginBottom: 6 }}><strong>Root cause:</strong> {fixPlan.diagnosis.rootCause}</div>
-              <div className="text-sm"><strong>Category:</strong> {fixPlan.diagnosis.category}</div>
-              <div style={{ marginTop: 8 }}>
-                <span className={`badge badge-${fixPlan.diagnosis.confidence >= 0.8 ? 'green' : fixPlan.diagnosis.confidence >= 0.5 ? 'blue' : 'amber'}`}>
-                  {Math.round(fixPlan.diagnosis.confidence * 100)}% confidence
-                </span>
-                <span className="badge badge-gray" style={{ marginLeft: 6 }}>{fixPlan.scope} scope</span>
+            <div className="bg-white rounded-3xl p-6 border border-black/5 shadow-dei-card mb-5">
+              <div className="text-xs font-black uppercase tracking-wider text-black/50 mb-3">AI Diagnosis</div>
+              <div className="text-sm text-black mb-1"><strong>Root cause:</strong> {fixPlan.diagnosis.rootCause}</div>
+              <div className="text-sm text-black mb-3"><strong>Category:</strong> {fixPlan.diagnosis.category}</div>
+              <div className="flex gap-2">
+                <span className="badge badge-green">{Math.round(fixPlan.diagnosis.confidence * 100)}% confidence</span>
+                <span className="badge badge-gray">{fixPlan.scope} scope</span>
               </div>
             </div>
 
-            {/* Patch ops */}
-            <div className="card" style={{ marginBottom: 20 }}>
-              <div className="text-xs text-muted" style={{ fontWeight: 600, marginBottom: 10 }}>CHANGES APPLIED</div>
-              <div className="text-sm" style={{ fontWeight: 600, marginBottom: 10 }}>{fixPlan.patch.summary}</div>
+            {/* Patch Ops */}
+            <div className="bg-white rounded-3xl p-6 border border-black/5 shadow-dei-card mb-5">
+              <div className="text-xs font-black uppercase tracking-wider text-black/50 mb-2">Changes Applied</div>
+              <div className="text-sm font-bold text-black mb-3">{fixPlan.patch.summary}</div>
               {fixPlan.patch.ops.map((op, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 13, color: 'var(--text-2)' }}>
+                <div key={i} className="flex items-center gap-2 text-xs text-black/70 mb-2">
                   <span className="badge badge-blue">{op.type}</span>
                   <span>{'reason' in op ? op.reason : ''}</span>
                 </div>
               ))}
             </div>
 
-            {/* Verification */}
-            {verify && (
-              <div className="card" style={{ marginBottom: 20 }}>
-                <div className="text-xs text-muted" style={{ fontWeight: 600, marginBottom: 10 }}>VERIFICATION</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <span className={`badge badge-${passed ? 'green' : 'red'}`}>
-                    {passed ? '✓ PASS' : '✗ FAIL'}
-                  </span>
-                  <span className="text-sm text-muted">{verify.factualClaimsChecked.length} claims checked</span>
-                </div>
-                {verify.issues.length > 0 && (
-                  <div>
-                    {verify.issues.map((iss, i) => (
-                      <div key={i} className="text-sm" style={{ color: iss.severity === 'high' ? '#f87171' : 'var(--mastery-weak)', marginBottom: 4 }}>
-                        {iss.severity === 'high' ? '🔴' : '🟡'} {iss.detail}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {verify.factualClaimsChecked.length > 0 && (
-                  <div style={{ marginTop: 10 }}>
-                    <div className="text-xs text-dim" style={{ marginBottom: 6 }}>Claims checked:</div>
-                    {verify.factualClaimsChecked.map((c, i) => (
-                      <div key={i} className="text-xs text-muted" style={{ marginBottom: 3 }}>✓ {c}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Propagation */}
-            {fixPlan.propagationHints.length > 0 && (
-              <div className="card" style={{ marginBottom: 20 }}>
-                <div className="text-xs text-muted" style={{ fontWeight: 600, marginBottom: 10 }}>ALSO AFFECTED</div>
-                {fixPlan.propagationHints.map((h, i) => {
-                  const c = course.concepts.find(x => x.id === h.conceptID);
-                  return (
-                    <div key={i} className="text-sm" style={{ marginBottom: 6 }}>
-                      <span className="badge badge-orange" style={{ marginRight: 6 }}>{c?.name ?? h.conceptID}</span>
-                      {h.why}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {applyResult && !applyResult.success && (
-              <div
-                className="card"
-                style={{
-                  borderColor: 'rgba(239,68,68,0.3)',
-                  background: 'rgba(239,68,68,0.06)',
-                  marginBottom: 20,
-                }}
-              >
-                <div className="text-sm" style={{ color: '#ef4444', fontWeight: 600, marginBottom: 4 }}>
-                  Patch Application Failed
-                </div>
-                <div className="text-sm text-muted">
-                  {applyResult.error ?? 'The proposed patch failed DAG validation or operation constraints.'}
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => router.push(`/lesson/${lessonID}`)}>
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button className="btn btn-secondary flex-1" onClick={() => router.push(`/lesson/${lessonID}`)}>
                 View Updated Lesson
               </button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => router.push('/roadmap')}>
+              <button className="btn btn-primary flex-1" onClick={() => router.push('/roadmap')}>
                 Roadmap →
               </button>
             </div>
@@ -302,97 +215,76 @@ function ReportContent() {
   }
 
   return (
-    <div className="page">
-      <nav className="navbar">
-        <button className="btn btn-ghost btn-sm" onClick={() => router.push(`/lesson/${lessonID}`)}>← Lesson</button>
-        <span className="text-sm" style={{ fontWeight: 600 }}>Report / Fix</span>
+    <div className="w-full h-full flex flex-col relative select-none">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-black/5 shrink-0">
+        <button className="btn btn-secondary btn-sm" onClick={() => router.push(`/lesson/${lessonID}`)}>
+          ← Lesson
+        </button>
+        <span className="text-sm font-extrabold text-[#0F1117]">Report / Fix Issue</span>
         <div />
-      </nav>
+      </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 0 120px' }}>
+      <div className="flex-1 overflow-y-auto py-6 pb-24">
         <div className="container container-sm">
-          <h1 className="text-2xl" style={{ marginBottom: 6 }}>Report an issue</h1>
-          <p className="text-muted text-sm" style={{ marginBottom: 28, lineHeight: 1.6 }}>
+          <h2 className="text-xl md:text-2xl font-extrabold text-[#0F1117] mb-1">
+            Report an issue with this lesson
+          </h2>
+          <p className="text-xs md:text-sm text-black/60 mb-6">
             &quot;{lesson.title}&quot; — AI will diagnose, patch, and verify a fix in ~15 seconds.
           </p>
 
-          {/* Error card */}
+          {/* Error Message */}
           {submitError && (
-            <div
-              className="card"
-              style={{
-                borderColor: 'rgba(239,68,68,0.3)',
-                background: 'rgba(239,68,68,0.06)',
-                marginBottom: 20,
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="text-sm" style={{ color: '#ef4444', fontWeight: 600 }}>
-                  Error: {submitError}
-                </div>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => setSubmitError(null)}
-                  style={{ color: 'var(--text-3)' }}
-                >
-                  ✕
-                </button>
-              </div>
+            <div className="bg-red-50 rounded-2xl p-4 border border-red-200 text-red-700 text-xs font-semibold mb-5 flex items-center justify-between">
+              <span>Error: {submitError}</span>
+              <button onClick={() => setSubmitError(null)} className="text-red-900 font-bold">✕</button>
             </div>
           )}
 
-          {/* Block indicator */}
+          {/* Targeted Block Indicator */}
           {blockId && (
-            <div
-              className="card-sm"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: 16,
-                borderColor: 'var(--border-accent)',
-                background: 'rgba(249,115,22,0.06)',
-              }}
-            >
-              <span style={{ fontSize: 14 }}>⚑</span>
-              <span className="text-xs text-accent" style={{ fontWeight: 600 }}>
-                Targeting Block: <span className="font-mono">{blockId}</span>
-              </span>
+            <div className="bg-[#E1F6FB] rounded-xl px-3 py-2 text-xs font-bold text-sky-900 mb-4 inline-flex items-center gap-1.5">
+              <span>⚑</span>
+              <span>Targeting Block: {blockId}</span>
             </div>
           )}
 
-          {/* Type selection */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-            {REPORT_TYPES.map(rt => (
-              <button
-                key={rt.id}
-                id={`report-type-${rt.id}`}
-                className="btn btn-secondary"
-                style={{
-                  justifyContent: 'flex-start',
-                  gap: 12,
-                  padding: '12px 16px',
-                  borderColor: selectedType === rt.id ? 'var(--accent)' : undefined,
-                  background: selectedType === rt.id ? 'rgba(249,115,22,0.08)' : undefined,
-                  textAlign: 'left',
-                }}
-                onClick={() => setSelectedType(rt.id)}
-              >
-                <span style={{ flex: 1 }}>{rt.label}</span>
-                <span className="text-dim text-xs">{rt.desc}</span>
-                {selectedType === rt.id && <span style={{ color: 'var(--accent)' }}>✓</span>}
-              </button>
-            ))}
+          {/* Issue Types */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-6">
+            {REPORT_TYPES.map(rt => {
+              const isSelected = selectedType === rt.id;
+              return (
+                <button
+                  key={rt.id}
+                  id={`report-type-${rt.id}`}
+                  onClick={() => setSelectedType(rt.id)}
+                  className={`p-3.5 rounded-2xl border text-left transition-all shadow-sm flex flex-col gap-1 ${
+                    isSelected
+                      ? 'bg-black text-white border-black scale-[1.01]'
+                      : 'bg-white hover:bg-[#F8F9FA] border-black/10 text-black'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold">{rt.label}</span>
+                    {isSelected && <span className="text-xs">✓</span>}
+                  </div>
+                  <span className={`text-[11px] ${isSelected ? 'text-white/70' : 'text-black/50'}`}>
+                    {rt.desc}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Free text */}
-          <div style={{ marginBottom: 24 }}>
-            <label className="text-sm" style={{ fontWeight: 600, display: 'block', marginBottom: 8 }}>
-              Additional detail (optional)
+          {/* Additional Detail */}
+          <div className="mb-6">
+            <label className="text-xs font-bold text-black/70 block mb-2">
+              Additional Details (optional)
             </label>
             <textarea
               className="input textarea"
-              placeholder="Describe the issue in more detail…"
+              placeholder="Tell us what felt unclear or how it can be improved…"
               value={freeText}
               onChange={e => setFreeText(e.target.value)}
               rows={3}
@@ -401,19 +293,13 @@ function ReportContent() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur)',
-        borderTop: '1px solid var(--glass-border)',
-        padding: '12px 20px', zIndex: 50,
-      }}>
+      {/* Sticky Bottom Submit */}
+      <div className="absolute bottom-3 left-0 right-0 px-4 py-2 bg-white/95 backdrop-blur-md rounded-2xl border border-black/10 shadow-dei-float flex items-center justify-center z-30">
         <button
           id="submit-report-btn"
-          className="btn btn-primary btn-full btn-lg"
+          className="btn btn-primary btn-full md:w-80"
           onClick={handleSubmit}
           disabled={!selectedType}
-          style={{ borderColor: 'var(--accent)' }}
         >
           ⚑ Diagnose & Fix →
         </button>
@@ -424,8 +310,9 @@ function ReportContent() {
 
 export default function ReportPage() {
   return (
-    <Suspense fallback={<div className="page" style={{ alignItems: 'center', justifyContent: 'center' }}><div className="spinner" /></div>}>
+    <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><div className="spinner" /></div>}>
       <ReportContent />
     </Suspense>
   );
 }
+

@@ -63,56 +63,84 @@ export function ApiKeyModal({ onReady }: ApiKeyModalProps) {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal animate-springin" style={{ maxWidth: 520 }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 56, height: 56,
-            borderRadius: 16,
-            background: 'rgba(249,115,22,0.12)',
-            border: '1px solid rgba(249,115,22,0.3)',
-            fontSize: 26,
-            marginBottom: 12,
-          }}>🧠</div>
-          <div className="text-3xl" style={{ marginBottom: 6 }}>AnyLearn</div>
-          <div className="text-sm text-muted">Your living, adaptive learning environment</div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+      <div
+        className="w-full max-w-md p-7 shadow-2xl animate-fadeIn"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: 28,
+          border: '1px solid #EBECEF',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          color: '#0F1117',
+        }}
+      >
+        {/* Logo & Header */}
+        <div className="text-center mb-6">
+          <div
+            className="w-14 h-14 rounded-2xl text-2xl flex items-center justify-center mx-auto mb-3"
+            style={{ backgroundColor: '#E6F5F8', border: '1px solid #C5EBF1' }}
+          >
+            🌱
+          </div>
+          <h2 className="text-2xl font-extrabold tracking-tight mb-1" style={{ color: '#0F1117' }}>
+            Welcome to AnyLearn
+          </h2>
+          <p className="text-xs font-medium" style={{ color: '#6B7280' }}>
+            Your personal, adaptive living curriculum
+          </p>
         </div>
 
-        {/* What it does */}
-        <div className="card-sm" style={{ marginBottom: 24, background: 'rgba(249,115,22,0.04)', borderColor: 'rgba(249,115,22,0.15)' }}>
-          <div className="text-sm text-muted" style={{ lineHeight: 1.7 }}>
-            Enter any learning goal → get a personalized roadmap, lessons, quizzes, and resources — all adapting to your understanding in real-time.
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-            {EXAMPLE_TOPICS.slice(0, 3).map(t => (
-              <span key={t} className="badge badge-orange">{t}</span>
-            ))}
+        {/* Feature highlight */}
+        <div
+          className="p-4 mb-5"
+          style={{
+            backgroundColor: '#F8F9FA',
+            borderRadius: 20,
+            border: '1px solid #EFEFEF',
+          }}
+        >
+          <p className="text-xs leading-relaxed mb-2.5 font-medium" style={{ color: '#4B5563' }}>
+            Turn any subject into an interactive learning plan with lessons, quizzes, and real-time concept tracking.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            <span
+              className="text-[11px] font-bold px-3 py-1 rounded-full"
+              style={{ backgroundColor: '#D4F6ED', color: '#064E3B' }}
+            >
+              🩺 Medicine
+            </span>
+            <span
+              className="text-[11px] font-bold px-3 py-1 rounded-full"
+              style={{ backgroundColor: '#F2E7FE', color: '#581C87' }}
+            >
+              💊 Pharmacology
+            </span>
+            <span
+              className="text-[11px] font-bold px-3 py-1 rounded-full"
+              style={{ backgroundColor: '#DCF0FA', color: '#0C4A6E' }}
+            >
+              🔌 PCB Electronics
+            </span>
           </div>
         </div>
 
         {/* API Key input */}
-        <div style={{ marginBottom: 8 }}>
-          <label className="text-sm" style={{ fontWeight: 600, display: 'block', marginBottom: 8 }}>
+        <div className="mb-4">
+          <label htmlFor="api-key-input" className="block text-xs font-bold mb-1.5" style={{ color: '#374151' }}>
             OpenAI API Key
-            <span className="text-dim" style={{ fontWeight: 400, marginLeft: 6 }}>
-              — get yours at{' '}
-              <a
-                href="https://platform.openai.com/api-keys"
-                target="_blank"
-                rel="noreferrer"
-                className="text-accent"
-              >
-                platform.openai.com
-              </a>
+            <span className="font-normal ml-1.5" style={{ color: '#9CA3AF' }}>
+              (Optional for demo preview)
             </span>
           </label>
           <input
             id="api-key-input"
-            className="input"
+            className="w-full px-3.5 py-2.5 text-sm transition-all outline-none"
+            style={{
+              backgroundColor: '#F8F9FA',
+              color: '#0F1117',
+              border: '1.5px solid #E5E7EB',
+              borderRadius: 16,
+            }}
             type="password"
             placeholder="sk-..."
             value={key}
@@ -122,36 +150,53 @@ export function ApiKeyModal({ onReady }: ApiKeyModalProps) {
             autoComplete="off"
           />
           {error && (
-            <div className="text-sm" style={{ color: '#f87171', marginTop: 6 }}>
-              ⚠ {error}
+            <div className="text-xs font-medium mt-1.5 flex items-center gap-1" style={{ color: '#DC2626' }}>
+              <span>⚠️</span>
+              <span>{error}</span>
             </div>
           )}
-          <div className="text-xs text-dim" style={{ marginTop: 6 }}>
-            Your key is stored only in your browser&apos;s localStorage. Never sent to our servers.
+          <div className="text-[11px] mt-1.5" style={{ color: '#9CA3AF' }}>
+            🔒 Stored locally in your browser. Never shared with any third party.
           </div>
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
+        <div className="flex flex-col gap-2.5 mt-5">
           <button
             id="save-api-key-btn"
-            className="btn btn-primary btn-lg btn-full"
+            type="button"
+            className="w-full py-3 text-sm font-bold transition-all flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: !key.trim() || testing ? '#E5E7EB' : '#0F1117',
+              color: !key.trim() || testing ? '#9CA3AF' : '#FFFFFF',
+              borderRadius: 16,
+              cursor: !key.trim() || testing ? 'not-allowed' : 'pointer',
+              border: 'none',
+            }}
             onClick={handleSave}
             disabled={!key.trim() || testing}
           >
             {testing ? (
-              <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Verifying…</>
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              '→ Start Learning'
+              <span>Start with API Key →</span>
             )}
           </button>
+
           <button
             id="preview-mode-btn"
-            className="btn btn-ghost btn-full"
+            type="button"
+            className="w-full py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            style={{
+              backgroundColor: '#D4F6ED',
+              color: '#064E3B',
+              border: '1px solid #A7F3D0',
+              borderRadius: 16,
+            }}
             onClick={handlePreview}
-            style={{ fontSize: 13 }}
           >
-            👁 Preview with PCB Design demo (no key needed)
+            <span>👁</span>
+            <span>Explore Demo Learning Plan (Instant)</span>
           </button>
         </div>
       </div>
