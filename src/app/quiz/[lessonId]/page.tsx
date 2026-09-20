@@ -1,11 +1,67 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { Mastery } from '@/lib/mastery';
 import { MasteryBar } from '@/components/MasteryRing';
-import type { Question, QuestionOption } from '@/lib/models';
+import { generate, ApiKeyStore } from '@/lib/llmClient';
+import { Prompts } from '@/lib/prompts';
+import type { Question, QuestionOption, Course, Lesson, RoadmapPatch } from '@/lib/models';
+
+export function createRemedialPatch(
+  course: Course,
+  lesson: Lesson,
+  weakConcepts: string[]
+): RoadmapPatch {
+  const weakConceptNames = weakConcepts
+    .map(cid => course.concepts.find(c => c.id === cid)?.name ?? cid)
+    .join(' & ');
+  const timestamp = Date.now().toString(36);
+  const remedialLessonID = `l-remedial-${lesson.id.replace(/^l-/, '')}-${timestamp}`;
+  const remedialLesson: Lesson = {
+    id: remedialLessonID,
+    moduleID: lesson.moduleID,
+    title: `Remedial Review: ${weakConceptNames}`,
+    conceptIDs: weakConcepts,
+    objectives: [
+      `Reinforce core principles of ${weakConceptNames}`,
+      `Review targeted misconceptions identified in quiz`,
+    ],
+    status: 'ready',
+    blocks: [
+      {
+        type: 'callout',
+        id: `b-rem-callout-${timestamp}`,
+        kind: 'warning',
+        markdown: `**Targeted Review**: Based on your recent quiz results, this review focuses on ${weakConceptNames} to help bridge key conceptual gaps before moving forward.`,
+      },
+      {
+        type: 'markdown',
+        id: `b-rem-md-${timestamp}`,
+        markdown: `## Focused Recap: ${weakConceptNames}\n\nReview the underlying fundamentals and trace how these concepts interact. Pay special attention to common pitfalls and verify each calculation or configuration step carefully.`,
+      },
+    ],
+    resourceQueries: weakConcepts.map(cid => `${cid} refresher tutorial`),
+    resources: [],
+    sources: [],
+    unsourced: false,
+    confidence: 'high',
+    version: 1,
+  };
+
+  return {
+    summary: `Add remedial review for ${weakConceptNames}`,
+    ops: [
+      {
+        type: 'insertLesson',
+        afterLessonID: lesson.id,
+        lesson: remedialLesson,
+        reason: `Low mastery detected on ${weakConceptNames} during quiz`,
+      },
+    ],
+  };
+}
 
 export default function QuizPage() {
   const router = useRouter();
@@ -15,16 +71,94 @@ export default function QuizPage() {
   const course = useStore(s => s.course);
   const learner = useStore(s => s.learner);
   const updateMastery = useStore(s => s.updateMastery);
-  const applyPatch = useStore(s => s.applyPatch);
 
   const [step, setStep] = useState(0); // current question index
   const [selected, setSelected] = useState<QuestionOption | null>(null);
   const [answered, setAnswered] = useState(false);
   const [results, setResults] = useState<Array<{ question: Question; option: QuestionOption; correct: boolean }>>([]);
   const [showSummary, setShowSummary] = useState(false);
+  const [adaptationState, setAdaptationState] = useState<{
+    status: 'idle' | 'running' | 'applied' | 'error';
+    summary?: string;
+    error?: string;
+  }>({ status: 'idle' });
+  const adaptationTriggeredRef = useRef(false);
 
   const lesson = course?.lessons[lessonID];
   const questions = course?.quizzes[lessonID] ?? [];
+
+  useEffect(() => {
+    if (!showSummary || !course || !lesson || adaptationTriggeredRef.current) return;
+
+    // Check if we already adapted for this lesson completion recently
+    const hasAdapted = course.changelog.some(c => 
+      c.source === 'adapt' && c.reason.includes(lesson.id)
+    );
+    if (hasAdapted) {
+      adaptationTriggeredRef.current = true;
+      return;
+    }
+
+    const weakConcepts = lesson.conceptIDs.filter(cid => {
+      const r = learner.mastery[cid];
+      return r && Mastery.shouldAdapt(r);
+    });
+
+    if (weakConcepts.length === 0) return;
+
+    adaptationTriggeredRef.current = true;
+
+    const runAdapt = async () => {
+      setAdaptationState({ status: 'running' });
+      const apiKey = ApiKeyStore.get();
+      const isDemoMode = typeof window !== 'undefined' && localStorage.getItem('anylearn-demo-mode') === 'true';
+
+      let patch: RoadmapPatch | null = null;
+      let reason = `Quiz adaptation for ${weakConcepts.length} concept(s) (Lesson: ${lesson.id})`;
+
+      if (apiKey && !isDemoMode) {
+        try {
+          const attempts = learner.attempts
+            .filter(a => lesson.conceptIDs.includes(a.conceptID))
+            .slice(-5);
+          const { system, user } = Prompts.adapt(
+            course.goal,
+            { modules: course.modules },
+            course.concepts,
+            learner.mastery,
+            { type: 'quizFailure', lessonID, weakConcepts },
+            attempts
+          );
+          patch = await generate<RoadmapPatch>(system, user, apiKey, { temperature: 0.3 });
+          if (patch?.summary) reason = `${patch.summary} (Lesson: ${lesson.id})`;
+        } catch {
+          patch = null;
+        }
+      }
+
+      if (!patch) {
+        patch = createRemedialPatch(course, lesson, weakConcepts);
+        reason = `${patch.summary} (Lesson: ${lesson.id})`;
+      }
+
+      const res = useStore.getState().applyPatch(patch, 'adapt', reason);
+      if (res.success) {
+        setAdaptationState({ status: 'applied', summary: patch.summary });
+      } else {
+        setAdaptationState({ status: 'error', error: res.error });
+      }
+    };
+
+    void runAdapt();
+  }, [showSummary, course, lesson, lessonID, learner]);
+
+  const q = questions[step];
+  const isLastQuestion = step === questions.length - 1;
+
+  const shuffledOptions = useMemo(() => {
+    if (!q) return [];
+    return [...q.options].sort(() => Math.random() - 0.5);
+  }, [q?.id]);
 
   if (!course || !lesson || questions.length === 0) {
     return (
@@ -43,9 +177,6 @@ export default function QuizPage() {
     );
   }
 
-  const q = questions[step];
-  const isLastQuestion = step === questions.length - 1;
-
   const handleSelect = (option: QuestionOption) => {
     if (answered) return;
     setSelected(option);
@@ -61,6 +192,7 @@ export default function QuizPage() {
 
   const handleNext = () => {
     if (isLastQuestion) {
+      useStore.getState().completeLesson(lessonID);
       setShowSummary(true);
     } else {
       setStep(s => s + 1);
@@ -119,13 +251,38 @@ export default function QuizPage() {
 
           {/* Weak concept notice */}
           {weakConcepts.length > 0 && (
-            <div className="card" style={{ borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.04)', marginBottom: 24 }}>
-              <div className="text-sm" style={{ color: 'var(--mastery-weak)', fontWeight: 600, marginBottom: 8 }}>
-                ⚠ Adaptive update triggered
+            <div
+              className="card"
+              style={{
+                borderColor: adaptationState.status === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)',
+                background: adaptationState.status === 'error' ? 'rgba(239,68,68,0.04)' : 'rgba(245,158,11,0.04)',
+                marginBottom: 24,
+              }}
+            >
+              <div
+                className="text-sm"
+                style={{
+                  color: adaptationState.status === 'error' ? '#ef4444' : 'var(--mastery-weak)',
+                  fontWeight: 600,
+                  marginBottom: 8,
+                }}
+              >
+                {adaptationState.status === 'applied'
+                  ? '✓ Adaptive update applied'
+                  : adaptationState.status === 'running'
+                  ? '⏳ Generating adaptive update…'
+                  : adaptationState.status === 'error'
+                  ? '⚠ Adaptive update failed'
+                  : '⚠ Adaptive update triggered'}
               </div>
               <div className="text-sm text-muted">
-                You're struggling with {weakConcepts.length} concept{weakConcepts.length > 1 ? 's' : ''}.
-                The roadmap will be updated to add a remedial path.
+                {adaptationState.status === 'applied'
+                  ? `Your roadmap was updated: ${adaptationState.summary ?? 'A remedial review lesson was added.'}`
+                  : adaptationState.status === 'running'
+                  ? 'Analyzing your struggle areas and generating a remedial path…'
+                  : adaptationState.status === 'error'
+                  ? `Could not apply patch: ${adaptationState.error}`
+                  : `You're struggling with ${weakConcepts.length} concept${weakConcepts.length > 1 ? 's' : ''}. The roadmap will be updated to add a remedial path.`}
               </div>
               <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {weakConcepts.map(cid => {
@@ -200,7 +357,7 @@ export default function QuizPage() {
 
           {/* Options */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-            {q.options.map((opt, i) => {
+            {shuffledOptions.map((opt, i) => {
               const isSelected = selected?.id === opt.id;
               const isCorrect = answered && opt.id === q.correctOptionID;
               const isWrong = answered && isSelected && !isCorrect;

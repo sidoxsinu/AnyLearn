@@ -1,18 +1,22 @@
-// AnyLearn — LLM Client (Gemini REST API + response cache)
-// API key is stored in localStorage and passed at call time — no backend needed.
+// AnyLearn — LLM Client (OpenAI chat completions API + response cache)
+// API key is stored in localStorage or provided via env var — no backend needed.
 
-const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-const DEFAULT_MODEL = 'gemini-2.0-flash';
+const OPENAI_BASE = 'https://api.openai.com/v1/chat/completions';
+const DEFAULT_MODEL = 'gpt-4o-mini';
 
 export interface LLMOptions {
   temperature?: number;
   model?: string;
 }
 
+export type LLMErrorCode = 'missingKey' | 'cacheMiss' | 'invalidResponse' | 'quota';
+
 export class LLMError extends Error {
-  constructor(public code: 'missingKey' | 'cacheMiss' | 'invalidResponse' | 'quota', message: string) {
-    super(message);
+  public code: LLMErrorCode;
+  constructor(code: LLMErrorCode, message?: string) {
+    super(message ?? code);
     this.name = 'LLMError';
+    this.code = code;
   }
 }
 
@@ -35,8 +39,8 @@ function cacheWrite(key: string, value: string): void {
   try { localStorage.setItem(CACHE_PREFIX + key, value); } catch { /* quota exceeded, ignore */ }
 }
 
-// ── Gemini REST call ─────────────────────────────────────────────────────────
-async function callGemini<T>(
+// ── OpenAI chat completions call ─────────────────────────────────────────────
+async function callOpenAI<T>(
   apiKey: string,
   system: string,
   user: string,
@@ -44,42 +48,38 @@ async function callGemini<T>(
 ): Promise<T> {
   const model = options.model ?? DEFAULT_MODEL;
   const temperature = options.temperature ?? 0.4;
-  const url = `${GEMINI_BASE}/${model}:generateContent?key=${apiKey}`;
+  let lastError = '';
 
-  const body = {
-    systemInstruction: { role: 'user', parts: [{ text: system }] },
-    contents: [{ role: 'user', parts: [{ text: user }] }],
-    generationConfig: {
-      temperature,
-      responseMimeType: 'application/json',
-    },
-  };
+  const buildBody = (userText: string) => ({
+    model,
+    temperature,
+    response_format: { type: 'json_object' },
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: userText },
+    ],
+  });
 
   for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await fetch(url, {
+    const userText = attempt === 0
+      ? user
+      : user + `\n\nReturn valid JSON only. Previous parse error: ${lastError}`;
+
+    const res = await fetch(OPENAI_BASE, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(
-        attempt === 0
-          ? body
-          : {
-              ...body,
-              contents: [
-                {
-                  role: 'user',
-                  parts: [{ text: user + `\n\nReturn valid JSON only. Previous parse error: ${lastError}` }],
-                },
-              ],
-            }
-      ),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(buildBody(userText)),
     });
 
-    if (res.status === 429) throw new LLMError('quota', 'API quota exceeded. Check your Gemini free tier limits.');
-    if (!res.ok) throw new LLMError('invalidResponse', `Gemini HTTP ${res.status}`);
+    if (res.status === 429) throw new LLMError('quota', 'API quota exceeded. Check your OpenAI usage limits.');
+    if (!res.ok) throw new LLMError('invalidResponse', `OpenAI HTTP ${res.status}`);
 
     const envelope = await res.json();
-    const text: string | undefined = envelope?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new LLMError('invalidResponse', 'Gemini returned no content.');
+    const text: string | undefined = envelope?.choices?.[0]?.message?.content;
+    if (!text) throw new LLMError('invalidResponse', 'OpenAI returned no content.');
 
     try {
       // Strip markdown code fences if present
@@ -93,8 +93,6 @@ async function callGemini<T>(
   throw new LLMError('invalidResponse', 'Retry exhausted.');
 }
 
-let lastError = '';
-
 // ── Public API ────────────────────────────────────────────────────────────────
 export async function generate<T>(
   system: string,
@@ -102,7 +100,7 @@ export async function generate<T>(
   apiKey: string,
   options: LLMOptions = {}
 ): Promise<T> {
-  if (!apiKey) throw new LLMError('missingKey', 'No Gemini API key provided.');
+  if (!apiKey) throw new LLMError('missingKey', 'No OpenAI API key provided.');
 
   const isDemoMode = typeof window !== 'undefined' &&
     (localStorage.getItem('anylearn-demo-mode') === 'true');
@@ -116,7 +114,7 @@ export async function generate<T>(
   }
 
   try {
-    const result = await callGemini<T>(apiKey, system, user, options);
+    const result = await callOpenAI<T>(apiKey, system, user, options);
     // Cache the result for demo/offline use
     cacheWrite(key, JSON.stringify(result));
     return result;
@@ -128,11 +126,13 @@ export async function generate<T>(
   }
 }
 
-// API key management (stored in localStorage)
+// API key management (stored in localStorage, with env var fallback)
 export const ApiKeyStore = {
   get(): string {
-    if (typeof window === 'undefined') return '';
-    return localStorage.getItem('anylearn-gemini-key') ?? '';
+    const envKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
+                   process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+    if (typeof window === 'undefined') return envKey;
+    return localStorage.getItem('anylearn-gemini-key') || envKey;
   },
   set(key: string): void {
     localStorage.setItem('anylearn-gemini-key', key.trim());

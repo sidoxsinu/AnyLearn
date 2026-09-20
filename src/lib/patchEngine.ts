@@ -1,11 +1,13 @@
 // AnyLearn — Patch Engine (ported from PatchEngine.swift)
-import type { Course, LearnerState, PatchOp, RoadmapPatch, Block, Lesson, TaskCard } from './models';
+import type { Course, LearnerState, PatchOp, RoadmapPatch } from './models';
 import { validateDAG } from './dagValidator';
 
 export class PatchEngineError extends Error {
-  constructor(public code: PatchErrorCode, detail?: string) {
+  public code: PatchErrorCode;
+  constructor(code: PatchErrorCode, detail?: string) {
     super(`Patch rejected: ${code}${detail ? ` — ${detail}` : ''}`);
     this.name = 'PatchEngineError';
+    this.code = code;
   }
 }
 
@@ -44,15 +46,21 @@ export function applyPatch(
       }
 
       case 'insertLesson': {
-        const moduleIndex = draft.modules.findIndex(m => m.lessonIDs.includes(op.afterLessonID));
+        let moduleIndex = draft.modules.findIndex(m => m.lessonIDs.includes(op.afterLessonID));
+        let insertIndex = -1;
+        if (moduleIndex !== -1) {
+          insertIndex = draft.modules[moduleIndex].lessonIDs.indexOf(op.afterLessonID) + 1;
+        } else {
+          moduleIndex = draft.modules.findIndex(m => m.id === op.afterLessonID);
+          if (moduleIndex !== -1) insertIndex = 0;
+        }
         if (moduleIndex === -1) throw new PatchEngineError('unknownID', op.afterLessonID);
         if (draft.lessons[op.lesson.id]) throw new PatchEngineError('duplicateID', op.lesson.id);
         const knownConceptIDs = new Set(draft.concepts.map(c => c.id));
         if (!op.lesson.conceptIDs.every(id => knownConceptIDs.has(id))) {
           throw new PatchEngineError('unknownID', 'lesson concept');
         }
-        const lessonIndex = draft.modules[moduleIndex].lessonIDs.indexOf(op.afterLessonID);
-        draft.modules[moduleIndex].lessonIDs.splice(lessonIndex + 1, 0, op.lesson.id);
+        draft.modules[moduleIndex].lessonIDs.splice(insertIndex, 0, op.lesson.id);
         draft.lessons[op.lesson.id] = op.lesson;
         inverses.unshift({ type: 'deleteLesson', lessonID: op.lesson.id, reason: op.reason });
         break;
@@ -103,12 +111,20 @@ export function applyPatch(
         if (!lesson) throw new PatchEngineError('unknownID', op.lessonID);
         const oldTask = lesson.task;
         draft.lessons[op.lessonID] = { ...lesson, task: op.task };
-        inverses.unshift({
-          type: 'addPractice',
-          lessonID: op.lessonID,
-          task: oldTask ?? op.task,
-          reason: op.reason,
-        });
+        if (oldTask) {
+          inverses.unshift({
+            type: 'addPractice',
+            lessonID: op.lessonID,
+            task: oldTask,
+            reason: op.reason,
+          });
+        } else {
+          inverses.unshift({
+            type: 'deleteLesson',
+            lessonID: `practice:${op.lessonID}`,
+            reason: op.reason,
+          });
+        }
         break;
       }
 
@@ -117,7 +133,11 @@ export function applyPatch(
         if (!lesson) throw new PatchEngineError('unknownID', op.lessonID);
         const old = lesson.skippable;
         draft.lessons[op.lessonID] = { ...lesson, skippable: { reason: op.reason } };
-        if (old) inverses.unshift({ type: 'markSkippable', lessonID: op.lessonID, reason: old.reason });
+        if (old) {
+          inverses.unshift({ type: 'markSkippable', lessonID: op.lessonID, reason: old.reason });
+        } else {
+          inverses.unshift({ type: 'deleteLesson', lessonID: `skippable:${op.lessonID}`, reason: op.reason });
+        }
         break;
       }
 
@@ -165,8 +185,16 @@ export function applyPatch(
         // Virtual delete for concepts
         if (id.startsWith('concept:')) {
           const cid = id.slice(8);
-          draft.concepts = draft.concepts.filter(c => c.id !== cid);
-          continue;
+          const concept = draft.concepts.find(c => c.id === cid);
+          if (concept) inverses.unshift({ type: 'addConcept', concept, reason: op.reason });
+          draft.concepts = draft.concepts.map(c => ({
+            ...c,
+            prereqIDs: c.prereqIDs.filter(p => p !== cid)
+          })).filter(c => c.id !== cid);
+          for (const lesson of Object.values(draft.lessons)) {
+            lesson.conceptIDs = lesson.conceptIDs.filter(c => c !== cid);
+          }
+          break;
         }
         // Virtual delete for blocks
         if (id.startsWith('block:')) {
@@ -174,19 +202,58 @@ export function applyPatch(
           if (parts.length !== 3) throw new PatchEngineError('unknownID', id);
           const lesson = draft.lessons[parts[1]];
           if (!lesson) throw new PatchEngineError('unknownID', parts[1]);
+          const block = lesson.blocks.find(b => b.id === parts[2]);
+          if (block) {
+            const idx = lesson.blocks.indexOf(block);
+            const afterBlockID = idx > 0 ? lesson.blocks[idx - 1].id : null;
+            inverses.unshift({ type: 'insertBlock', lessonID: parts[1], afterBlockID, block, reason: op.reason });
+          }
           draft.lessons[parts[1]] = { ...lesson, blocks: lesson.blocks.filter(b => b.id !== parts[2]) };
-          continue;
+          break;
+        }
+        // Virtual delete for skippable
+        if (id.startsWith('skippable:')) {
+          const targetLessonID = id.slice(10);
+          const lesson = draft.lessons[targetLessonID];
+          if (!lesson) throw new PatchEngineError('unknownID', targetLessonID);
+          if (lesson.skippable) inverses.unshift({ type: 'markSkippable', lessonID: targetLessonID, reason: lesson.skippable.reason });
+          const updated = { ...lesson };
+          delete updated.skippable;
+          draft.lessons[targetLessonID] = updated;
+          break;
+        }
+        // Virtual delete for practice task
+        if (id.startsWith('practice:') || id.startsWith('task:')) {
+          const targetLessonID = id.startsWith('practice:') ? id.slice(9) : id.slice(5);
+          const lesson = draft.lessons[targetLessonID];
+          if (!lesson) throw new PatchEngineError('unknownID', targetLessonID);
+          if (lesson.task) inverses.unshift({ type: 'addPractice', lessonID: targetLessonID, task: lesson.task, reason: op.reason });
+          const updated = { ...lesson };
+          delete updated.task;
+          draft.lessons[targetLessonID] = updated;
+          break;
         }
         // Real lesson delete
         if (learner.completedLessonIDs.includes(id)) throw new PatchEngineError('completedLesson', id);
         if (!draft.lessons[id]) throw new PatchEngineError('unknownID', id);
+        
+        const deletedLesson = draft.lessons[id];
+        const mIdx = draft.modules.findIndex(m => m.lessonIDs.includes(id));
+        if (mIdx !== -1) {
+          const lIdx = draft.modules[mIdx].lessonIDs.indexOf(id);
+          const afterLessonID = lIdx > 0 ? draft.modules[mIdx].lessonIDs[lIdx - 1] : draft.modules[mIdx].id;
+          inverses.unshift({ type: 'insertLesson', afterLessonID, lesson: deletedLesson, reason: op.reason });
+        }
+
         const updatedLessons = { ...draft.lessons };
         delete updatedLessons[id];
+        const updatedQuizzes = { ...draft.quizzes };
+        delete updatedQuizzes[id];
         const updatedModules = draft.modules.map(m => ({
           ...m,
           lessonIDs: m.lessonIDs.filter(lid => lid !== id),
         }));
-        draft = { ...draft, lessons: updatedLessons, modules: updatedModules };
+        draft = { ...draft, lessons: updatedLessons, modules: updatedModules, quizzes: updatedQuizzes };
         break;
       }
     }

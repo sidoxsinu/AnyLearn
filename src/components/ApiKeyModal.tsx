@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ApiKeyStore } from '@/lib/llmClient';
+import { useStore } from '@/lib/store';
+import { pcbCourseFixture } from '@/lib/fixture';
 
 interface ApiKeyModalProps {
   onReady: () => void;
@@ -17,25 +20,26 @@ const EXAMPLE_TOPICS = [
 ];
 
 export function ApiKeyModal({ onReady }: ApiKeyModalProps) {
+  const router = useRouter();
   const [key, setKey] = useState('');
-  const [show, setShow] = useState(false);
   const [error, setError] = useState('');
   const [testing, setTesting] = useState(false);
 
   const handleSave = async () => {
     const trimmed = key.trim();
-    if (!trimmed.startsWith('AIza')) {
-      setError('Gemini API keys start with "AIza". Get a free key at aistudio.google.com');
+    // OpenAI keys start with sk- and are long; Gemini keys start with AIza
+    if (trimmed.length < 10 || (!trimmed.startsWith('sk-') && !trimmed.startsWith('AIza'))) {
+      setError('Invalid API key format. OpenAI keys start with sk-');
       return;
     }
     setTesting(true);
     setError('');
     try {
-      // Quick validation call
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${trimmed}`
-      );
-      if (res.status === 400 || res.status === 401 || res.status === 403) {
+      // Quick validation call against OpenAI models endpoint
+      const res = await fetch('https://api.openai.com/v1/models', {
+        headers: { Authorization: `Bearer ${trimmed}` },
+      });
+      if (res.status === 401 || res.status === 403) {
         setError('Invalid API key. Please check and try again.');
         setTesting(false);
         return;
@@ -43,7 +47,7 @@ export function ApiKeyModal({ onReady }: ApiKeyModalProps) {
       ApiKeyStore.set(trimmed);
       onReady();
     } catch {
-      setError('Could not reach Gemini API. Check your internet connection.');
+      setError('Could not reach OpenAI API. Check your internet connection.');
     }
     setTesting(false);
   };
@@ -51,13 +55,11 @@ export function ApiKeyModal({ onReady }: ApiKeyModalProps) {
   const handlePreview = () => {
     localStorage.setItem('anylearn-demo-mode', 'true');
     // Load fixture for demo
-    import('@/lib/fixture').then(m => {
-      if (m.pcbCourseFixture) {
-        const { useStore } = require('@/lib/store');
-        useStore.getState().setCourse(m.pcbCourseFixture);
-      }
-    }).catch(() => {});
+    if (pcbCourseFixture) {
+      useStore.getState().setCourse(pcbCourseFixture);
+    }
     onReady();
+    router.push('/roadmap');
   };
 
   return (
@@ -95,16 +97,16 @@ export function ApiKeyModal({ onReady }: ApiKeyModalProps) {
         {/* API Key input */}
         <div style={{ marginBottom: 8 }}>
           <label className="text-sm" style={{ fontWeight: 600, display: 'block', marginBottom: 8 }}>
-            Gemini API Key
+            OpenAI API Key
             <span className="text-dim" style={{ fontWeight: 400, marginLeft: 6 }}>
-              — free at{' '}
+              — get yours at{' '}
               <a
-                href="https://aistudio.google.com/apikey"
+                href="https://platform.openai.com/api-keys"
                 target="_blank"
                 rel="noreferrer"
                 className="text-accent"
               >
-                aistudio.google.com
+                platform.openai.com
               </a>
             </span>
           </label>
@@ -112,7 +114,7 @@ export function ApiKeyModal({ onReady }: ApiKeyModalProps) {
             id="api-key-input"
             className="input"
             type="password"
-            placeholder="AIza..."
+            placeholder="sk-..."
             value={key}
             onChange={e => { setKey(e.target.value); setError(''); }}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
@@ -125,7 +127,7 @@ export function ApiKeyModal({ onReady }: ApiKeyModalProps) {
             </div>
           )}
           <div className="text-xs text-dim" style={{ marginTop: 6 }}>
-            Your key is stored only in your browser's localStorage. Never sent to our servers.
+            Your key is stored only in your browser&apos;s localStorage. Never sent to our servers.
           </div>
         </div>
 

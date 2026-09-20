@@ -20,15 +20,17 @@ export default function LessonPage() {
 
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
-  const [flaggedBlock, setFlaggedBlock] = useState<string | null>(null);
-  const [showReport, setShowReport] = useState(false);
+  const [notice, setNotice] = useState('');
 
   const lesson = course?.lessons[lessonID];
 
   useEffect(() => {
     if (!course || !lesson) return;
     if (lesson.status === 'stub') {
-      generateLesson();
+      const timer = setTimeout(() => {
+        void generateLesson();
+      }, 0);
+      return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonID, course?.id]);
@@ -36,10 +38,20 @@ export default function LessonPage() {
   async function generateLesson() {
     if (!course || !lesson) return;
     const apiKey = ApiKeyStore.get();
-    if (!apiKey) { router.push('/goal'); return; }
+    const isDemoMode = typeof window !== 'undefined' && localStorage.getItem('anylearn-demo-mode') === 'true';
+
+    if (!apiKey) {
+      if (isDemoMode) {
+        setNotice('Stub lesson generation requires a live Gemini API key');
+        return;
+      }
+      router.push('/goal');
+      return;
+    }
 
     setGenerating(true);
     setError('');
+    setNotice('');
     try {
       const mod = course.modules.find(m => m.id === lesson.moduleID);
       const concepts = lesson.conceptIDs.map(id => course.concepts.find(c => c.id === id)).filter(Boolean);
@@ -88,6 +100,23 @@ export default function LessonPage() {
     setGenerating(false);
   }
 
+  if (course && !lesson) {
+    return (
+      <div className="page" style={{ alignItems: 'center', justifyContent: 'center', padding: '40px 16px' }}>
+        <div className="card" style={{ maxWidth: 480, textAlign: 'center', padding: 32 }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🔍</div>
+          <h2 className="text-xl" style={{ marginBottom: 8, fontWeight: 700 }}>Lesson not found</h2>
+          <p className="text-muted text-sm" style={{ marginBottom: 24, lineHeight: 1.6 }}>
+            The requested lesson could not be found in this course.
+          </p>
+          <button className="btn btn-primary" onClick={() => router.push('/roadmap')}>
+            Return to Roadmap
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!course || !lesson) {
     return (
       <div className="page" style={{ alignItems: 'center', justifyContent: 'center' }}>
@@ -132,6 +161,18 @@ export default function LessonPage() {
             ))}
           </div>
 
+          {/* Demo Notice */}
+          {notice && (
+            <div className="card" style={{ marginBottom: 24, borderColor: 'rgba(249,115,22,0.3)', background: 'rgba(249,115,22,0.06)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 20 }}>ℹ</span>
+                <div className="text-sm" style={{ color: 'var(--text-1)' }}>
+                  {notice}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Blocks */}
           {generating ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -154,7 +195,7 @@ export default function LessonPage() {
                 <BlockRenderer
                   key={block.id}
                   block={block}
-                  onFlag={id => { setFlaggedBlock(id); setShowReport(true); }}
+                  onFlag={id => router.push(`/report/${lessonID}?blockId=${id}`)}
                 />
               ))}
 

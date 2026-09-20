@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiKeyStore } from '@/lib/llmClient';
 import { ApiKeyModal } from '@/components/ApiKeyModal';
-import { useStore } from '@/lib/store';
+
+const emptySubscribe = () => () => {};
 
 const EXAMPLE_GOALS = [
   { emoji: '🔌', label: 'PCB design from zero', goal: 'I want to learn PCB design from zero and eventually design my own board' },
@@ -20,12 +21,14 @@ const HOURS = [1, 2, 5, 10, 20];
 
 export default function GoalPage() {
   const router = useRouter();
-  const setBuilding = useStore(s => s.setBuilding);
 
   const [goal, setGoal] = useState('');
   const [artifact, setArtifact] = useState('');
   const [hours, setHours] = useState(5);
-  const [showModal, setShowModal] = useState(!ApiKeyStore.has());
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const [showModalOverride, setShowModalOverride] = useState<boolean | null>(null);
+
+  const showModal = mounted && (showModalOverride ?? !ApiKeyStore.has());
 
   const canSubmit = goal.trim().length >= 8;
 
@@ -35,11 +38,12 @@ export default function GoalPage() {
     sessionStorage.setItem('anylearn-goal', goal.trim());
     sessionStorage.setItem('anylearn-artifact', artifact || 'Working prototype');
     sessionStorage.setItem('anylearn-hours', String(hours));
+    localStorage.removeItem('anylearn-demo-mode');
     router.push('/build');
   };
 
   if (showModal) {
-    return <ApiKeyModal onReady={() => setShowModal(false)} />;
+    return <ApiKeyModal onReady={() => setShowModalOverride(false)} />;
   }
 
   return (
@@ -99,7 +103,7 @@ export default function GoalPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* End artifact */}
             <div>
-              <div className="text-sm text-muted" style={{ marginBottom: 8 }}>What's your end goal?</div>
+              <div className="text-sm text-muted" style={{ marginBottom: 8 }}>What&apos;s your end goal?</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {ARTIFACTS.map(a => (
                   <button
@@ -150,7 +154,7 @@ export default function GoalPage() {
         <div style={{ textAlign: 'center', marginTop: 16 }}>
           <button
             className="btn btn-ghost btn-sm"
-            onClick={() => { ApiKeyStore.clear(); setShowModal(true); }}
+            onClick={() => { ApiKeyStore.clear(); setShowModalOverride(true); }}
           >
             🔑 Change API key
           </button>

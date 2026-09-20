@@ -2,8 +2,8 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Course, LearnerState, MasteryRecord, Question, QuestionOption, RoadmapPatch, ChangeSource, VerifyResult, ID } from './models';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
+import type { Course, LearnerState, Question, QuestionOption, RoadmapPatch, ChangeSource, VerifyResult, ID } from './models';
 import { defaultLearnerState } from './models';
 import { applyPatch } from './patchEngine';
 import { Mastery } from './mastery';
@@ -128,11 +128,24 @@ export const useStore = create<AppState>()(
         }
       },
 
-      reset: () => set({ course: null, learner: defaultLearnerState(), latestError: null }),
+      reset: () => {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('anylearn-demo-mode');
+        }
+        set({ course: null, learner: defaultLearnerState(), latestError: null });
+      },
     }),
     {
       name: 'anylearn-state',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined') return window.localStorage;
+        const fallback: StateStorage = {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+        };
+        return fallback;
+      }),
       partialize: (state) => ({ course: state.course, learner: state.learner }),
     }
   )

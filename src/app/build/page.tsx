@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { generate, ApiKeyStore } from '@/lib/llmClient';
 import { Prompts } from '@/lib/prompts';
@@ -21,6 +21,7 @@ export default function BuildPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState('');
   const [dots, setDots] = useState('');
+  const [goalSummary, setGoalSummary] = useState('');
   const abortRef = useRef(false);
 
   // Animated dots
@@ -29,25 +30,12 @@ export default function BuildPage() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => {
-    const goal = sessionStorage.getItem('anylearn-goal') ?? '';
-    const endArtifact = sessionStorage.getItem('anylearn-artifact') ?? 'Working prototype';
-    const hours = parseInt(sessionStorage.getItem('anylearn-hours') ?? '5', 10);
-
-    if (!goal) { router.replace('/goal'); return; }
-
-    buildCourse(goal, endArtifact, hours);
-    return () => { abortRef.current = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function buildCourse(goal: string, endArtifact: string, hours: number) {
+  const buildCourse = useCallback(async (goal: string, endArtifact: string, hours: number) => {
     const apiKey = ApiKeyStore.get();
     if (!apiKey) { router.replace('/goal'); return; }
 
     try {
       // Step 1: Profile (fast, inline)
-      setCurrentStep(0);
       const profile = {
         topic: goal.split(' ').slice(0, 4).join(' '),
         endArtifact,
@@ -140,7 +128,28 @@ export default function BuildPage() {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
     }
-  }
+  }, [router, setCourse]);
+
+  useEffect(() => {
+    const goal = sessionStorage.getItem('anylearn-goal') ?? '';
+    const endArtifact = sessionStorage.getItem('anylearn-artifact') ?? 'Working prototype';
+    const hours = parseInt(sessionStorage.getItem('anylearn-hours') ?? '5', 10);
+
+    queueMicrotask(() => {
+      setGoalSummary(goal.slice(0, 80));
+    });
+
+    if (!goal) { router.replace('/goal'); return; }
+
+    abortRef.current = false;
+    const timer = setTimeout(() => {
+      void buildCourse(goal, endArtifact, hours);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      abortRef.current = true;
+    };
+  }, [buildCourse, router]);
 
   if (error) {
     return (
@@ -168,7 +177,7 @@ export default function BuildPage() {
           <div style={{ fontSize: 40, marginBottom: 12 }}>⚙</div>
           <h1 className="text-2xl" style={{ marginBottom: 8 }}>Building your course{dots}</h1>
           <p className="text-muted text-sm">
-            {sessionStorage.getItem('anylearn-goal')?.slice(0, 80) ?? ''}
+            {goalSummary}
           </p>
         </div>
 

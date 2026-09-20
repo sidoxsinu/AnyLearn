@@ -35,26 +35,13 @@ interface RoadmapGraphProps {
 
 export function RoadmapGraph({ course, learner, selectedID, onSelect }: RoadmapGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [viewBox, setViewBox] = useState('0 0 800 600');
   const [pan, setPan] = useState({ x: 40, y: 40 });
   const [dragging, setDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, px: 0, py: 0 });
 
-  const { nodes, edges, totalW, totalH } = useMemo(() => {
+  const { nodes, edges } = useMemo(() => {
     return layoutGraph(course, learner);
   }, [course, learner]);
-
-  useEffect(() => {
-    const updateViewBox = () => {
-      if (svgRef.current) {
-        const { width, height } = svgRef.current.getBoundingClientRect();
-        setViewBox(`0 0 ${width} ${height}`);
-      }
-    };
-    updateViewBox();
-    window.addEventListener('resize', updateViewBox);
-    return () => window.removeEventListener('resize', updateViewBox);
-  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as SVGElement).closest('.graph-node')) return;
@@ -67,16 +54,32 @@ export function RoadmapGraph({ course, learner, selectedID, onSelect }: RoadmapG
   };
   const handleMouseUp = () => setDragging(false);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if ((e.target as SVGElement).closest('.graph-node')) return;
+    const touch = e.touches[0];
+    setDragging(true);
+    setDragStart({ x: touch.clientX, y: touch.clientY, px: pan.x, py: pan.y });
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    setPan({ x: dragStart.px + (touch.clientX - dragStart.x), y: dragStart.py + (touch.clientY - dragStart.y) });
+  };
+  const handleTouchEnd = () => setDragging(false);
+
   return (
     <svg
       ref={svgRef}
       className="roadmap-svg"
-      viewBox={viewBox}
-      style={{ cursor: dragging ? 'grabbing' : 'grab', userSelect: 'none' }}
+      style={{ cursor: dragging ? 'grabbing' : 'grab', userSelect: 'none', touchAction: 'none', width: '100%', height: '100%' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
       <defs>
         <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">

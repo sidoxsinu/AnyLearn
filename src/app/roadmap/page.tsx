@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { RoadmapGraph } from '@/components/RoadmapGraph';
 import { MasteryRing } from '@/components/MasteryRing';
+
+const emptySubscribe = () => () => {};
 
 export default function RoadmapPage() {
   const router = useRouter();
@@ -14,8 +16,15 @@ export default function RoadmapPage() {
   const [showChangelog, setShowChangelog] = useState(false);
   const reset = useStore(s => s.reset);
 
-  if (!course) {
-    router.replace('/goal');
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  useEffect(() => {
+    if (mounted && !course) {
+      router.replace('/goal');
+    }
+  }, [mounted, course, router]);
+
+  if (!mounted || !course) {
     return null;
   }
 
@@ -40,6 +49,10 @@ export default function RoadmapPage() {
     .at(0);
 
   const recentChanges = course.changelog.filter(e => !e.undone).slice(-5).reverse();
+
+  const requiredLessonIDs = Object.values(course.lessons).filter(l => !l.skippable).map(l => l.id);
+  const completedRequiredCount = requiredLessonIDs.filter(id => learner.completedLessonIDs.includes(id)).length;
+  const isCourseComplete = requiredLessonIDs.length > 0 && completedRequiredCount >= requiredLessonIDs.length;
 
   return (
     <div className="page" style={{ overflow: 'hidden' }}>
@@ -112,6 +125,46 @@ export default function RoadmapPage() {
             ))}
           </div>
         </div>
+
+        {/* Capstone project card */}
+        {course.capstone && (
+          <div
+            id="capstone-card"
+            className="glass"
+            style={{
+              position: 'absolute',
+              bottom: 16,
+              left: 16,
+              maxWidth: 380,
+              padding: '12px 16px',
+              zIndex: 10,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ fontSize: 16 }}>🏆</span>
+              <div className="text-xs text-accent" style={{ fontWeight: 700, letterSpacing: '0.06em' }}>
+                CAPSTONE PROJECT
+              </div>
+            </div>
+            <div className="text-sm" style={{ fontWeight: 600, marginBottom: 4 }}>
+              {course.capstone.title}
+            </div>
+            <div className="text-xs text-muted" style={{ lineHeight: 1.5, marginBottom: 8 }}>
+              {course.capstone.description}
+            </div>
+            {course.capstone.successCriteria && course.capstone.successCriteria.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {course.capstone.successCriteria.map((crit, i) => {
+                  return (
+                    <span key={i} className={`badge badge-${isCourseComplete ? 'green' : 'gray'}`} style={{ fontSize: 10 }}>
+                      {isCourseComplete ? '✓ ' : '○ '}{crit}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Bottom rail: progress + next action */}

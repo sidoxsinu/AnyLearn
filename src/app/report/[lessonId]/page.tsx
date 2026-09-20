@@ -1,11 +1,43 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { generate, ApiKeyStore } from '@/lib/llmClient';
 import { Prompts } from '@/lib/prompts';
-import type { FixPlan, VerifyResult } from '@/lib/models';
+import type { FixPlan, VerifyResult, Lesson, PatchOp } from '@/lib/models';
+
+export function constructAfterLesson(
+  lesson: Lesson,
+  patchOps: PatchOp[],
+  lessonID: string
+): Lesson {
+  const afterLesson: Lesson = JSON.parse(JSON.stringify(lesson));
+  for (const op of patchOps) {
+    if (op.type === 'replaceBlock' && op.lessonID === lessonID) {
+      const idx = afterLesson.blocks.findIndex(b => b.id === op.blockID);
+      if (idx !== -1) afterLesson.blocks[idx] = op.block;
+    } else if (op.type === 'insertBlock' && op.lessonID === lessonID) {
+      if (op.afterBlockID) {
+        const idx = afterLesson.blocks.findIndex(b => b.id === op.afterBlockID);
+        if (idx !== -1) afterLesson.blocks.splice(idx + 1, 0, op.block);
+        else afterLesson.blocks.push(op.block);
+      } else {
+        afterLesson.blocks.unshift(op.block);
+      }
+    } else if (op.type === 'addPractice' && op.lessonID === lessonID) {
+      afterLesson.task = op.task;
+    } else if (op.type === 'markSkippable' && op.lessonID === lessonID) {
+      afterLesson.skippable = { reason: op.reason };
+    } else if (op.type === 'refreshResources' && op.lessonID === lessonID) {
+      afterLesson.resourceQueries = op.queries;
+    } else if (op.type === 'deleteLesson' && op.lessonID.startsWith(`block:${lessonID}:`)) {
+      const targetBlockID = op.lessonID.split(':')[2];
+      afterLesson.blocks = afterLesson.blocks.filter(b => b.id !== targetBlockID);
+    }
+  }
+  return afterLesson;
+}
 
 const REPORT_TYPES = [
   { id: 'incorrect', label: '❌ Incorrect information', desc: 'Content has a factual error' },
@@ -21,9 +53,11 @@ const REPORT_TYPES = [
 
 type Step = 'input' | 'loading' | 'result';
 
-export default function ReportPage() {
+function ReportContent() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  const blockId = searchParams.get('blockId');
   const lessonID = params.lessonId as string;
 
   const course = useStore(s => s.course);
@@ -34,6 +68,7 @@ export default function ReportPage() {
   const [freeText, setFreeText] = useState('');
   const [step, setStep] = useState<Step>('input');
   const [loadingMsg, setLoadingMsg] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [fixPlan, setFixPlan] = useState<FixPlan | null>(null);
   const [verify, setVerify] = useState<VerifyResult | null>(null);
   const [applyResult, setApplyResult] = useState<{ success: boolean; error?: string } | null>(null);
@@ -53,11 +88,17 @@ export default function ReportPage() {
     const apiKey = ApiKeyStore.get();
     if (!apiKey) { router.push('/goal'); return; }
 
+    setSubmitError(null);
     setStep('loading');
     try {
       // Diagnose + Fix
       setLoadingMsg('Diagnosing the issue…');
-      const report = { type: selectedType, text: freeText, lessonId: lessonID };
+      const report = {
+        type: selectedType,
+        text: freeText,
+        lessonId: lessonID,
+        ...(blockId ? { blockId } : {}),
+      };
       const mastery = Object.fromEntries(
         lesson.conceptIDs.map(cid => [cid, learner.mastery[cid]?.probability ?? 0])
       );
@@ -73,22 +114,28 @@ export default function ReportPage() {
       const plan = await generate<FixPlan>(dSys, dUser, apiKey, { temperature: 0.3 });
       setFixPlan(plan);
 
-      // Verify
+      // Verify with distinct afterLesson
       setLoadingMsg('Verifying the fix…');
-      const { system: vSys, user: vUser } = Prompts.verify(lesson, lesson, report, mastery);
+      const afterLesson = constructAfterLesson(lesson, plan.patch.ops, lessonID);
+      const { system: vSys, user: vUser } = Prompts.verify(lesson, afterLesson, report, mastery);
       const vResult = await generate<VerifyResult>(vSys, vUser, apiKey, { temperature: 0.1 });
       setVerify(vResult);
 
       // Apply patch
       setLoadingMsg('Applying patch…');
-      const result = applyPatch(plan.patch, 'report', plan.learnerFacingMessage, vResult);
+      let result;
+      if (vResult.verdict.toLowerCase().trim() === 'pass') {
+        result = applyPatch(plan.patch, 'report', plan.learnerFacingMessage, vResult);
+      } else {
+        result = { success: false, error: 'Verification failed. Patch rejected by AI judge.' };
+      }
       setApplyResult(result);
 
       setStep('result');
     } catch (err) {
       setLoadingMsg('');
       setStep('input');
-      alert('Error: ' + (err instanceof Error ? err.message : String(err)));
+      setSubmitError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -105,7 +152,8 @@ export default function ReportPage() {
   }
 
   if (step === 'result' && fixPlan) {
-    const passed = verify?.verdict === 'pass';
+    const passed = verify?.verdict.toLowerCase().trim() === 'pass';
+    const isSuccess = Boolean(applyResult?.success && passed);
     return (
       <div className="page">
         <nav className="navbar">
@@ -118,9 +166,34 @@ export default function ReportPage() {
           <div className="container container-sm">
 
             {/* Learner message */}
-            <div className="card" style={{ marginBottom: 20, borderColor: passed ? 'rgba(34,197,94,0.3)' : 'rgba(249,115,22,0.3)' }}>
-              <div className="text-sm" style={{ fontWeight: 700, marginBottom: 8, color: passed ? 'var(--mastery-solid)' : 'var(--accent)' }}>
-                {passed ? '✓ Fix applied & verified' : '⚠ Fix applied (needs review)'}
+            <div
+              className="card"
+              style={{
+                marginBottom: 20,
+                borderColor: isSuccess
+                  ? 'rgba(34,197,94,0.3)'
+                  : !applyResult?.success
+                  ? 'rgba(239,68,68,0.3)'
+                  : 'rgba(249,115,22,0.3)',
+              }}
+            >
+              <div
+                className="text-sm"
+                style={{
+                  fontWeight: 700,
+                  marginBottom: 8,
+                  color: isSuccess
+                    ? 'var(--mastery-solid)'
+                    : !applyResult?.success
+                    ? '#ef4444'
+                    : 'var(--accent)',
+                }}
+              >
+                {isSuccess
+                  ? '✓ Fix applied & verified'
+                  : !applyResult?.success
+                  ? '✗ Fix failed to apply'
+                  : '⚠ Fix applied (needs review)'}
               </div>
               <div className="text-base" style={{ lineHeight: 1.7 }}>{fixPlan.learnerFacingMessage}</div>
             </div>
@@ -197,8 +270,20 @@ export default function ReportPage() {
             )}
 
             {applyResult && !applyResult.success && (
-              <div className="card" style={{ borderColor: 'rgba(239,68,68,0.3)' }}>
-                <div className="text-sm" style={{ color: '#f87171' }}>Patch could not be applied: {applyResult.error}</div>
+              <div
+                className="card"
+                style={{
+                  borderColor: 'rgba(239,68,68,0.3)',
+                  background: 'rgba(239,68,68,0.06)',
+                  marginBottom: 20,
+                }}
+              >
+                <div className="text-sm" style={{ color: '#ef4444', fontWeight: 600, marginBottom: 4 }}>
+                  Patch Application Failed
+                </div>
+                <div className="text-sm text-muted">
+                  {applyResult.error ?? 'The proposed patch failed DAG validation or operation constraints.'}
+                </div>
               </div>
             )}
 
@@ -228,8 +313,53 @@ export default function ReportPage() {
         <div className="container container-sm">
           <h1 className="text-2xl" style={{ marginBottom: 6 }}>Report an issue</h1>
           <p className="text-muted text-sm" style={{ marginBottom: 28, lineHeight: 1.6 }}>
-            "{lesson.title}" — AI will diagnose, patch, and verify a fix in ~15 seconds.
+            &quot;{lesson.title}&quot; — AI will diagnose, patch, and verify a fix in ~15 seconds.
           </p>
+
+          {/* Error card */}
+          {submitError && (
+            <div
+              className="card"
+              style={{
+                borderColor: 'rgba(239,68,68,0.3)',
+                background: 'rgba(239,68,68,0.06)',
+                marginBottom: 20,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="text-sm" style={{ color: '#ef4444', fontWeight: 600 }}>
+                  Error: {submitError}
+                </div>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setSubmitError(null)}
+                  style={{ color: 'var(--text-3)' }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Block indicator */}
+          {blockId && (
+            <div
+              className="card-sm"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 16,
+                borderColor: 'var(--border-accent)',
+                background: 'rgba(249,115,22,0.06)',
+              }}
+            >
+              <span style={{ fontSize: 14 }}>⚑</span>
+              <span className="text-xs text-accent" style={{ fontWeight: 600 }}>
+                Targeting Block: <span className="font-mono">{blockId}</span>
+              </span>
+            </div>
+          )}
 
           {/* Type selection */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
@@ -289,5 +419,13 @@ export default function ReportPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function ReportPage() {
+  return (
+    <Suspense fallback={<div className="page" style={{ alignItems: 'center', justifyContent: 'center' }}><div className="spinner" /></div>}>
+      <ReportContent />
+    </Suspense>
   );
 }
