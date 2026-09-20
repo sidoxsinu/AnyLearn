@@ -161,7 +161,7 @@ sequenceDiagram
 * *Frontend:* Next.js 16 (App Router), React 19, TypeScript, Vanilla CSS (Custom Neo-Brutalist Design System)
 * *Backend:* Next.js Serverless Edge / Route Handlers, Node.js
 * *Database:* Client-side Zustand state store with `localStorage` persistence and hydration safety
-* *APIs / Services:* Google Generative AI REST API (Structured JSON Schema generation and diagnostic verification)
+* *APIs / Services:* OpenAi Api, Codex, Google Generative AI REST API (Structured JSON Schema generation and diagnostic verification)
 * *Hosting / Deployment:* Vercel / Netlify / Self-hosted Docker container
 * *Other Tools:* Native Node Test Runner (`node:test`), Mermaid.js (DAG visualization), Framer Motion, Canvas Confetti
 
