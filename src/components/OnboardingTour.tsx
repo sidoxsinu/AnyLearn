@@ -65,7 +65,7 @@ const TOUR_STEPS: TourStep[] = [
     badge: '6 / 6 • CUSTOMIZE & SETTINGS',
     title: 'Settings, Keys & New Goals ⚙️',
     description:
-      'Configure your Gemini API key, switch between pre-loaded courses (Medical Terminology & PCB Electronics), or create a brand new custom course from the "New Goal" tab.',
+      'Configure your OpenAi API key, switch between pre-loaded courses (Medical Terminology & PCB Electronics), or create a brand new custom course from the "New Goal" tab.',
     tip: 'You can restart this interactive tour anytime from the header "Tour" button.',
   },
 ];
