@@ -214,7 +214,7 @@ AI development tools and LLM integrations played a central role throughout the l
 - Node.js 20.0 or higher
 - npm 10.0 or higher
 
-### Installation & Setup
+### Installation & Setup (must provide openai api for MVP)
 
 1. **Clone the repository:**
    ```bash
