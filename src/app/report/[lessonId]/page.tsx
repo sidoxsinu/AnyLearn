@@ -217,41 +217,43 @@ function ReportContent() {
   return (
     <div className="w-full h-full flex flex-col relative select-none">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-black/5 shrink-0">
-        <button className="btn btn-secondary btn-sm" onClick={() => router.push(`/lesson/${lessonID}`)}>
+      <div className="flex items-center justify-between pb-4 border-b-2 border-black shrink-0">
+        <button className="brutal-btn brutal-btn-sm bg-white" onClick={() => router.push(`/lesson/${lessonID}`)}>
           ← Lesson
         </button>
-        <span className="text-sm font-extrabold text-[#0F1117]">Report / Fix Issue</span>
+        <span className="text-base font-black text-black">Report / Fix Issue</span>
         <div />
       </div>
 
       <div className="flex-1 overflow-y-auto py-6 pb-24">
-        <div className="container container-sm">
-          <h2 className="text-xl md:text-2xl font-extrabold text-[#0F1117] mb-1">
-            Report an issue with this lesson
-          </h2>
-          <p className="text-xs md:text-sm text-black/60 mb-6">
-            &quot;{lesson.title}&quot; — AI will diagnose, patch, and verify a fix in ~15 seconds.
-          </p>
+        <div className="max-w-2xl mx-auto flex flex-col gap-6">
+          <div>
+            <h2 className="text-xl md:text-2xl font-black text-black mb-1">
+              Report an issue with this lesson
+            </h2>
+            <p className="text-xs md:text-sm font-bold text-neutral-600">
+              &quot;{lesson.title}&quot; — AI will diagnose, patch, and verify a fix in ~15 seconds.
+            </p>
+          </div>
 
           {/* Error Message */}
           {submitError && (
-            <div className="bg-red-50 rounded-2xl p-4 border border-red-200 text-red-700 text-xs font-semibold mb-5 flex items-center justify-between">
+            <div className="brutal-card p-4 bg-[#FF5A36] text-white text-xs font-black flex items-center justify-between">
               <span>Error: {submitError}</span>
-              <button onClick={() => setSubmitError(null)} className="text-red-900 font-bold">✕</button>
+              <button onClick={() => setSubmitError(null)} className="font-black text-white hover:opacity-80">✕</button>
             </div>
           )}
 
           {/* Targeted Block Indicator */}
           {blockId && (
-            <div className="bg-[#E1F6FB] rounded-xl px-3 py-2 text-xs font-bold text-sky-900 mb-4 inline-flex items-center gap-1.5">
+            <div className="brutal-badge bg-[#E0F2FE] self-start text-xs font-black text-black">
               <span>⚑</span>
               <span>Targeting Block: {blockId}</span>
             </div>
           )}
 
           {/* Issue Types */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-6">
+          <div className="brutal-grid-2">
             {REPORT_TYPES.map(rt => {
               const isSelected = selectedType === rt.id;
               return (
@@ -259,17 +261,17 @@ function ReportContent() {
                   key={rt.id}
                   id={`report-type-${rt.id}`}
                   onClick={() => setSelectedType(rt.id)}
-                  className={`p-3.5 rounded-2xl border text-left transition-all shadow-sm flex flex-col gap-1 ${
+                  className={`p-4 rounded border-[3px] border-black text-left transition-all flex flex-col gap-1 cursor-pointer ${
                     isSelected
-                      ? 'bg-black text-white border-black scale-[1.01]'
-                      : 'bg-white hover:bg-[#F8F9FA] border-black/10 text-black'
+                      ? 'bg-black text-white shadow-[4px_4px_0px_#FFE600]'
+                      : 'bg-white hover:bg-[#FAF8F5] text-black shadow-[3px_3px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold">{rt.label}</span>
-                    {isSelected && <span className="text-xs">✓</span>}
+                    <span className="text-xs font-black">{rt.label}</span>
+                    {isSelected && <span className="text-xs font-black text-[#FFE600]">✓</span>}
                   </div>
-                  <span className={`text-[11px] ${isSelected ? 'text-white/70' : 'text-black/50'}`}>
+                  <span className={`text-[11px] font-bold ${isSelected ? 'text-white/80' : 'text-neutral-600'}`}>
                     {rt.desc}
                   </span>
                 </button>
@@ -278,12 +280,12 @@ function ReportContent() {
           </div>
 
           {/* Additional Detail */}
-          <div className="mb-6">
-            <label className="text-xs font-bold text-black/70 block mb-2">
+          <div>
+            <label className="text-xs font-black uppercase tracking-wider text-black block mb-2">
               Additional Details (optional)
             </label>
             <textarea
-              className="input textarea"
+              className="brutal-input text-sm"
               placeholder="Tell us what felt unclear or how it can be improved…"
               value={freeText}
               onChange={e => setFreeText(e.target.value)}
@@ -294,14 +296,14 @@ function ReportContent() {
       </div>
 
       {/* Sticky Bottom Submit */}
-      <div className="absolute bottom-3 left-0 right-0 px-4 py-2 bg-white/95 backdrop-blur-md rounded-2xl border border-black/10 shadow-dei-float flex items-center justify-center z-30">
+      <div className="sticky bottom-4 mt-6 p-4 bg-white border-[3px] border-black shadow-[4px_4px_0px_#000000] rounded-lg flex items-center justify-center z-30">
         <button
           id="submit-report-btn"
-          className="btn btn-primary btn-full md:w-80"
+          className="brutal-btn brutal-btn-primary w-full md:w-80"
           onClick={handleSubmit}
           disabled={!selectedType}
         >
-          ⚑ Diagnose & Fix →
+          ⚑ Diagnose &amp; Fix →
         </button>
       </div>
     </div>

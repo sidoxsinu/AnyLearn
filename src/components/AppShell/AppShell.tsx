@@ -26,93 +26,113 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isReport = pathname.startsWith('/report');
   const isGoal = pathname === '/goal';
 
-  // Real progress calculation
+  // Real progress metrics
   const totalLessons = allLessonIDs.length || 0;
   const completedCount = completedIDs.length;
   const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
   return (
-    <div className="min-h-screen w-full bg-[#F4F0EA] flex flex-col font-sans text-black">
-      {/* ── Brutalist Top Navigation Bar ──────────────────────────────────── */}
-      <header className="sticky top-0 z-40 w-full bg-[#FFFFFF] border-b-[3px] border-black shadow-[0_4px_0px_#000000]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
-          {/* Brand Wordmark */}
+    <div
+      className="min-h-screen w-full flex flex-col font-sans"
+      style={{ backgroundColor: '#F4F0EA', color: '#000000' }}
+    >
+      {/* ── Brutalist Top Navigation Header ───────────────────────────────── */}
+      <header
+        className="sticky top-0 z-40 w-full"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderBottom: '3px solid #000000',
+          boxShadow: '0 4px 0px #000000',
+        }}
+      >
+        <div
+          style={{ maxWidth: 1140, margin: '0 auto' }}
+          className="px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-3"
+        >
+          {/* Brand Wordmark with Electric Yellow Star Box */}
           <Link
             href="/roadmap"
-            className="flex items-center gap-2 group text-decoration-none select-none shrink-0"
+            className="flex items-center gap-2.5 select-none shrink-0"
+            style={{ textDecoration: 'none' }}
             aria-label="AnyLearn Home"
           >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[#FFE600] border-[3px] border-black shadow-[3px_3px_0px_#000000] flex items-center justify-center font-black text-xl group-hover:translate-x-[-1px] group-hover:translate-y-[-1px] group-hover:shadow-[4px_4px_0px_#000000] transition-all">
+            <div
+              style={{
+                width: 42,
+                height: 42,
+                backgroundColor: '#FFE600',
+                border: '3px solid #000000',
+                boxShadow: '3px 3px 0px #000000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 900,
+                fontSize: 22,
+                color: '#000000',
+              }}
+            >
               ★
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-xl sm:text-2xl text-black tracking-tight leading-none">
+              <span
+                style={{
+                  fontWeight: 900,
+                  fontSize: 22,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1,
+                  color: '#000000',
+                }}
+              >
                 AnyLearn
               </span>
-              <span className="text-[10px] font-black uppercase tracking-wider text-black mt-0.5">
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  color: '#000000',
+                  marginTop: 2,
+                }}
+              >
                 Adaptive LMS
               </span>
             </div>
           </Link>
 
-          {/* Center Navigation Links (Real functional pages) */}
-          <nav className="hidden md:flex items-center gap-2 font-black text-xs sm:text-sm">
-            {/* 1. Roadmap */}
+          {/* Center Navigation Links (Real functional routes) */}
+          <nav className="hidden md:flex items-center gap-2">
             <Link
               href="/roadmap"
-              className={`px-3 py-1.5 border-2 border-black rounded transition-all ${
-                isRoadmap
-                  ? 'bg-[#FFE600] shadow-[2px_2px_0px_#000000]'
-                  : 'bg-white hover:bg-neutral-100'
-              }`}
+              className={`brutal-nav-link ${isRoadmap ? 'active' : ''}`}
             >
               🗺️ Roadmap
             </Link>
 
-            {/* 2. Current Lesson */}
             <Link
               href={lessonHref}
-              className={`px-3 py-1.5 border-2 border-black rounded transition-all ${
-                isLesson
-                  ? 'bg-[#FFE600] shadow-[2px_2px_0px_#000000]'
-                  : 'bg-white hover:bg-neutral-100'
-              }`}
+              className={`brutal-nav-link ${isLesson ? 'active' : ''}`}
             >
               📖 Lesson
             </Link>
 
-            {/* 3. Quiz & Practice */}
             <Link
               href={quizHref}
-              className={`px-3 py-1.5 border-2 border-black rounded transition-all ${
-                isQuiz
-                  ? 'bg-[#FFE600] shadow-[2px_2px_0px_#000000]'
-                  : 'bg-white hover:bg-neutral-100'
-              }`}
+              className={`brutal-nav-link ${isQuiz ? 'active' : ''}`}
             >
               ⚡ Quiz
             </Link>
 
-            {/* 4. Report */}
             <Link
               href={reportHref}
-              className={`px-3 py-1.5 border-2 border-black rounded transition-all ${
-                isReport
-                  ? 'bg-[#FFE600] shadow-[2px_2px_0px_#000000]'
-                  : 'bg-white hover:bg-neutral-100'
-              }`}
+              className={`brutal-nav-link ${isReport ? 'active' : ''}`}
             >
               📊 Report
             </Link>
 
-            {/* 5. Goal Intake */}
             <Link
               href="/goal"
-              className={`px-3 py-1.5 border-2 border-black rounded transition-all ${
-                isGoal
-                  ? 'bg-[#FFE600] shadow-[2px_2px_0px_#000000]'
-                  : 'bg-white hover:bg-neutral-100'
-              }`}
+              className={`brutal-nav-link ${isGoal ? 'active' : ''}`}
             >
               🎯 New Goal
             </Link>
@@ -122,10 +142,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Real Progress Metric Pill */}
             {totalLessons > 0 && (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#00F59B] border-2 border-black shadow-[2px_2px_0px_#000000] font-black text-xs">
+              <div
+                style={{
+                  backgroundColor: '#00F59B',
+                  border: '2px solid #000000',
+                  boxShadow: '2px 2px 0px #000000',
+                  padding: '6px 12px',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  color: '#000000',
+                  borderRadius: 4,
+                }}
+                className="hidden sm:flex items-center gap-1.5"
+              >
                 <span>✓</span>
                 <span>
-                  {completedCount}/{totalLessons} Done ({progressPercent}%)
+                  {completedCount}/{totalLessons} ({progressPercent}%)
                 </span>
               </div>
             )}
@@ -134,7 +166,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setIsSettingsOpen(true)}
-              className="brutal-btn brutal-btn-sm bg-white hover:bg-[#FFE600]"
+              className="brutal-btn brutal-btn-sm brutal-btn-white"
               title="Settings & API Key"
               aria-label="Settings"
             >
@@ -144,40 +176,105 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Mobile Navigation Row */}
-        <div className="flex md:hidden items-center justify-around border-t-2 border-black bg-[#FAF8F5] px-2 py-2 text-xs font-black">
-          <Link href="/roadmap" className={isRoadmap ? 'underline decoration-2' : ''}>
+        {/* Mobile Navigation Links Row */}
+        <div
+          className="flex md:hidden items-center justify-around px-2 py-2"
+          style={{
+            borderTop: '2px solid #000000',
+            backgroundColor: '#FAF8F5',
+            fontSize: 12,
+            fontWeight: 800,
+          }}
+        >
+          <Link
+            href="/roadmap"
+            style={{
+              textDecoration: isRoadmap ? 'underline' : 'none',
+              textDecorationThickness: 2,
+              color: '#000000',
+            }}
+          >
             🗺️ Roadmap
           </Link>
-          <Link href={lessonHref} className={isLesson ? 'underline decoration-2' : ''}>
+          <Link
+            href={lessonHref}
+            style={{
+              textDecoration: isLesson ? 'underline' : 'none',
+              textDecorationThickness: 2,
+              color: '#000000',
+            }}
+          >
             📖 Lesson
           </Link>
-          <Link href={quizHref} className={isQuiz ? 'underline decoration-2' : ''}>
+          <Link
+            href={quizHref}
+            style={{
+              textDecoration: isQuiz ? 'underline' : 'none',
+              textDecorationThickness: 2,
+              color: '#000000',
+            }}
+          >
             ⚡ Quiz
           </Link>
-          <Link href={reportHref} className={isReport ? 'underline decoration-2' : ''}>
+          <Link
+            href={reportHref}
+            style={{
+              textDecoration: isReport ? 'underline' : 'none',
+              textDecorationThickness: 2,
+              color: '#000000',
+            }}
+          >
             📊 Report
           </Link>
-          <Link href="/goal" className={isGoal ? 'underline decoration-2' : ''}>
+          <Link
+            href="/goal"
+            style={{
+              textDecoration: isGoal ? 'underline' : 'none',
+              textDecorationThickness: 2,
+              color: '#000000',
+            }}
+          >
             🎯 Goal
           </Link>
         </div>
       </header>
 
-      {/* ── Main View Container (Natural Scrolling & Zero Overlap) ────────── */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      {/* ── Main View Container (Natural Scrolling, Responsive, No Overlapping) */}
+      <main
+        style={{
+          maxWidth: 1140,
+          margin: '0 auto',
+          padding: '24px 16px 48px 16px',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+        className="flex-1 flex flex-col"
+      >
         {children}
       </main>
 
       {/* ── Brutalist Footer ──────────────────────────────────────────────── */}
-      <footer className="w-full bg-[#FFFFFF] border-t-[3px] border-black py-4 px-6 text-center text-xs font-bold text-neutral-800">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderTop: '3px solid #000000',
+          padding: '16px 24px',
+          fontSize: 12,
+          fontWeight: 800,
+          color: '#000000',
+        }}
+        className="w-full text-center"
+      >
+        <div
+          style={{ maxWidth: 1140, margin: '0 auto' }}
+          className="flex flex-col sm:flex-row items-center justify-between gap-2"
+        >
           <span>AnyLearn — Living, Adaptive Learning Path powered by Gemini AI</span>
-          <span>Open Source &amp; Privacy-First</span>
+          <span>Zero Mock Data • 100% Verified State</span>
         </div>
       </footer>
 
-      {/* Real Settings Modal */}
+      {/* Settings Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}

@@ -22,7 +22,7 @@ export default function RoadmapPage() {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   useEffect(() => {
-    // If no course loaded, pre-load medical fixture for immediate exploration
+    // If no course is loaded when visiting roadmap, load medical fixture by default
     if (mounted && !course) {
       setCourse(medicalCourseFixture);
     }
@@ -36,23 +36,23 @@ export default function RoadmapPage() {
     );
   }
 
-  // Derive real live data
+  // Derive live data from store
   const allLessonIDs = course.modules.flatMap((m) => m.lessonIDs);
   const completedIDs = learner.completedLessonIDs || [];
   const nextLessonID = allLessonIDs.find((id) => !completedIDs.includes(id)) || allLessonIDs[0];
   const nextLesson = nextLessonID ? course.lessons[nextLessonID] : null;
 
-  // Real Stats
+  // Real stats
   const totalLessons = allLessonIDs.length;
   const completedCount = completedIDs.length;
   const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
   const masteredCount = Object.values(learner.mastery || {}).filter((m) => m.probability >= 0.7).length;
   const adaptiveUpdatesCount = course.changelog ? course.changelog.length : 0;
 
-  // Selected Lesson Details
+  // Selected lesson detail
   const selectedLesson = selectedID ? course.lessons[selectedID] : null;
 
-  // Filter lessons if searching
+  // Search filter
   const matchesSearch = (title: string, desc?: string) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -60,25 +60,76 @@ export default function RoadmapPage() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 select-none pb-12">
+    <div className="w-full flex flex-col gap-6 select-none">
       {/* ── 1. Neo-Brutalist Hero Card ─────────────────────────────────────── */}
-      <div className="brutal-card p-6 sm:p-8 bg-[#FFE600] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div
+        style={{
+          backgroundColor: '#FFE600',
+          border: '3px solid #000000',
+          boxShadow: '6px 6px 0px #000000',
+          borderRadius: 10,
+          padding: '28px 24px',
+        }}
+        className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6"
+      >
+        {/* Left Hero Content */}
         <div className="flex flex-col gap-3 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="brutal-badge bg-white text-black">
+            <span
+              style={{
+                backgroundColor: '#FFFFFF',
+                color: '#000000',
+                border: '2px solid #000000',
+                boxShadow: '2px 2px 0px #000000',
+                borderRadius: 4,
+                padding: '3px 10px',
+                fontWeight: 900,
+                fontSize: 11,
+                letterSpacing: '0.04em',
+              }}
+            >
               LIVE COURSE
             </span>
-            <span className="brutal-badge bg-[#00F59B] text-black">
+            <span
+              style={{
+                backgroundColor: '#00F59B',
+                color: '#000000',
+                border: '2px solid #000000',
+                boxShadow: '2px 2px 0px #000000',
+                borderRadius: 4,
+                padding: '3px 10px',
+                fontWeight: 900,
+                fontSize: 11,
+                letterSpacing: '0.04em',
+              }}
+            >
               {progressPercent}% COMPLETE
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-black tracking-tight leading-tight">
-            {course.profile?.topic || course.goal || 'Adaptive Learning Path'}
+          <h1
+            style={{
+              fontSize: 'clamp(24px, 4vw, 36px)',
+              fontWeight: 900,
+              letterSpacing: '-0.03em',
+              lineHeight: 1.15,
+              color: '#000000',
+            }}
+          >
+            {course.profile?.topic || course.goal || 'Medical Terminology & Clinical Basics'}
           </h1>
 
-          <p className="text-sm font-bold text-neutral-800 leading-relaxed">
-            {course.goal ? `Goal: ${course.goal}` : 'Adaptive learning path customized to your target domain with AI tutor reinforcement.'}
+          <p
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: '#1F2937',
+              lineHeight: 1.5,
+            }}
+          >
+            {course.goal
+              ? `Goal: ${course.goal}`
+              : 'Master medical terminology, basic pharmacology, and clinical pathophysiology for effective patient communication.'}
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3">
@@ -87,75 +138,150 @@ export default function RoadmapPage() {
                 type="button"
                 onClick={() => router.push(`/lesson/${nextLessonID}`)}
                 className="brutal-btn brutal-btn-dark"
+                style={{ backgroundColor: '#000000', color: '#FFFFFF' }}
               >
-                <span>Continue Learning</span>
-                <span className="text-base">→</span>
+                <span style={{ color: '#FFFFFF', fontWeight: 900 }}>Continue Learning</span>
+                <span style={{ color: '#FFFFFF', fontWeight: 900 }}>→</span>
               </button>
             )}
 
             <button
               type="button"
               onClick={() => router.push('/goal')}
-              className="brutal-btn bg-white hover:bg-neutral-100"
+              className="brutal-btn brutal-btn-white"
+              style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
             >
-              <span>Create New Goal</span>
+              <span style={{ color: '#000000', fontWeight: 900 }}>Create New Goal</span>
               <span>🎯</span>
             </button>
           </div>
         </div>
 
-        {/* Hero Visual Stat */}
-        <div className="w-full sm:w-auto p-5 border-[3px] border-black bg-white shadow-[4px_4px_0px_#000000] rounded-lg flex flex-col items-center justify-center shrink-0 min-w-[200px] text-center">
-          <span className="text-xs font-black uppercase tracking-wider text-neutral-600">
-            Current Lesson
+        {/* Right Sub-Card: Current Lesson Indicator */}
+        <div
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '3px solid #000000',
+            boxShadow: '4px 4px 0px #000000',
+            borderRadius: 8,
+            padding: '20px',
+            width: '100%',
+            maxWidth: 340,
+            boxSizing: 'border-box',
+          }}
+          className="flex flex-col gap-2 shrink-0"
+        >
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              color: '#4B5563',
+            }}
+          >
+            CURRENT LESSON
           </span>
-          <span className="text-base font-black text-black mt-1 line-clamp-2">
+
+          <span
+            style={{
+              fontSize: 16,
+              fontWeight: 900,
+              color: '#000000',
+              lineHeight: 1.3,
+            }}
+            className="line-clamp-2"
+          >
             {nextLesson ? nextLesson.title : 'All Lessons Completed!'}
           </span>
+
           {nextLessonID && (
             <Link
               href={`/lesson/${nextLessonID}`}
-              className="mt-3 text-xs font-black text-black underline hover:text-[#8B5CF6]"
+              className="brutal-btn brutal-btn-sm brutal-btn-primary"
+              style={{
+                marginTop: 8,
+                textDecoration: 'none',
+                backgroundColor: '#FFE600',
+                color: '#000000',
+                width: '100%',
+              }}
             >
-              Open Lesson Now ↗
+              <span style={{ color: '#000000', fontWeight: 900 }}>Open Lesson Now ↗</span>
             </Link>
           )}
         </div>
       </div>
 
-      {/* ── 2. Live Store Stats Row (Zero Mock Data) ───────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Stat 1: Total Lessons */}
-        <div className="brutal-card p-4 bg-white flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-black text-black">{totalLessons}</span>
-          <span className="text-xs font-black uppercase tracking-wider text-neutral-600 mt-1">
+      {/* ── 2. Live Store Stats Row (4-Column Neo-Brutalist Grid) ───────────── */}
+      <div className="brutal-grid-4">
+        {/* Stat 1: Total Lessons (White card with bold black text) */}
+        <div
+          className="brutal-stat-card"
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '3px solid #000000',
+            boxShadow: '4px 4px 0px #000000',
+          }}
+        >
+          <span style={{ fontSize: 32, fontWeight: 900, color: '#000000', lineHeight: 1 }}>
+            {totalLessons}
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#4B5563' }}>
             Total Lessons
           </span>
         </div>
 
-        {/* Stat 2: Completed */}
-        <div className="brutal-card p-4 bg-[#00F59B] flex flex-col items-center justify-center text-center">
-          <div className="flex items-center gap-1.5">
-            <span className="text-3xl font-black text-black">{completedCount}</span>
-            <span className="text-lg">✓</span>
+        {/* Stat 2: Completed (Acid Mint) */}
+        <div
+          className="brutal-stat-card"
+          style={{
+            backgroundColor: '#00F59B',
+            border: '3px solid #000000',
+            boxShadow: '4px 4px 0px #000000',
+          }}
+        >
+          <div className="flex items-center gap-1.5" style={{ lineHeight: 1 }}>
+            <span style={{ fontSize: 32, fontWeight: 900, color: '#000000' }}>
+              {completedCount}
+            </span>
+            <span style={{ fontSize: 20, fontWeight: 900, color: '#000000' }}>✓</span>
           </div>
-          <span className="text-xs font-black uppercase tracking-wider text-black mt-1">
+          <span style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#000000' }}>
             Completed ({progressPercent}%)
           </span>
         </div>
 
-        {/* Stat 3: Mastered Concepts */}
-        <div className="brutal-card p-4 bg-[#E0F2FE] flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-black text-black">{masteredCount}</span>
-          <span className="text-xs font-black uppercase tracking-wider text-neutral-700 mt-1">
+        {/* Stat 3: Mastered Concepts (Sky Blue) */}
+        <div
+          className="brutal-stat-card"
+          style={{
+            backgroundColor: '#38BDF8',
+            border: '3px solid #000000',
+            boxShadow: '4px 4px 0px #000000',
+          }}
+        >
+          <span style={{ fontSize: 32, fontWeight: 900, color: '#000000', lineHeight: 1 }}>
+            {masteredCount}
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#000000' }}>
             Concepts Mastered
           </span>
         </div>
 
-        {/* Stat 4: Adaptive Updates */}
-        <div className="brutal-card p-4 bg-[#EDE9FE] flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-black text-black">{adaptiveUpdatesCount}</span>
-          <span className="text-xs font-black uppercase tracking-wider text-neutral-700 mt-1">
+        {/* Stat 4: Adaptive Updates (Electric Violet) */}
+        <div
+          className="brutal-stat-card"
+          style={{
+            backgroundColor: '#DDD6FE',
+            border: '3px solid #000000',
+            boxShadow: '4px 4px 0px #000000',
+          }}
+        >
+          <span style={{ fontSize: 32, fontWeight: 900, color: '#000000', lineHeight: 1 }}>
+            {adaptiveUpdatesCount}
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#000000' }}>
             Adaptive Updates
           </span>
         </div>
@@ -175,7 +301,7 @@ export default function RoadmapPage() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-neutral-500 hover:text-black"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-neutral-500 hover:text-black cursor-pointer"
             >
               ✕
             </button>
@@ -188,8 +314,12 @@ export default function RoadmapPage() {
             type="button"
             onClick={() => setViewMode('list')}
             className={`brutal-btn brutal-btn-sm ${
-              viewMode === 'list' ? 'brutal-btn-primary' : 'bg-white'
+              viewMode === 'list' ? 'brutal-btn-primary' : 'brutal-btn-white'
             }`}
+            style={{
+              backgroundColor: viewMode === 'list' ? '#FFE600' : '#FFFFFF',
+              color: '#000000',
+            }}
           >
             <span>📋</span>
             <span>List View</span>
@@ -199,8 +329,12 @@ export default function RoadmapPage() {
             type="button"
             onClick={() => setViewMode('graph')}
             className={`brutal-btn brutal-btn-sm ${
-              viewMode === 'graph' ? 'brutal-btn-primary' : 'bg-white'
+              viewMode === 'graph' ? 'brutal-btn-primary' : 'brutal-btn-white'
             }`}
+            style={{
+              backgroundColor: viewMode === 'graph' ? '#FFE600' : '#FFFFFF',
+              color: '#000000',
+            }}
           >
             <span>🌿</span>
             <span>Graph View</span>
@@ -208,7 +342,7 @@ export default function RoadmapPage() {
         </div>
       </div>
 
-      {/* ── 4. Main Content: List View or Graph View ──────────────────────── */}
+      {/* ── 4. Main Content: List View vs Graph View ──────────────────────── */}
       {viewMode === 'list' ? (
         <div className="flex flex-col gap-6">
           {course.modules.map((mod, modIdx) => {
@@ -220,18 +354,45 @@ export default function RoadmapPage() {
             if (modLessons.length === 0) return null;
 
             return (
-              <div key={mod.id} className="brutal-card p-5 sm:p-6 bg-white flex flex-col gap-4">
+              <div
+                key={mod.id}
+                className="brutal-card p-5 sm:p-6 bg-white flex flex-col gap-4"
+                style={{
+                  border: '3px solid #000000',
+                  boxShadow: '4px 4px 0px #000000',
+                  borderRadius: 8,
+                  backgroundColor: '#FFFFFF',
+                }}
+              >
                 {/* Module Header */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b-2 border-black">
+                <div
+                  className="flex flex-wrap items-center justify-between gap-2 pb-3"
+                  style={{ borderBottom: '2px solid #000000' }}
+                >
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded border-2 border-black bg-[#FFE600] flex items-center justify-center font-black text-sm">
+                    <span
+                      style={{
+                        width: 32,
+                        height: 32,
+                        border: '2px solid #000000',
+                        backgroundColor: '#FFE600',
+                        boxShadow: '2px 2px 0px #000000',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 900,
+                        fontSize: 14,
+                        color: '#000000',
+                        borderRadius: 4,
+                      }}
+                    >
                       {modIdx + 1}
                     </span>
                     <div>
-                      <h2 className="text-lg sm:text-xl font-black text-black">
+                      <h2 style={{ fontSize: 18, fontWeight: 900, color: '#000000' }}>
                         {mod.title}
                       </h2>
-                      <p className="text-xs text-neutral-600 font-bold mt-0.5">
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#525252', marginTop: 2 }}>
                         {modLessons.length} lessons in this module
                       </p>
                     </div>
@@ -239,73 +400,98 @@ export default function RoadmapPage() {
                 </div>
 
                 {/* Lessons Grid in Module */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="brutal-grid-2">
                   {modLessons.map((lesson) => {
                     const isCompleted = completedIDs.includes(lesson.id);
 
                     return (
                       <div
                         key={lesson.id}
-                        className={`p-4 border-2 border-black rounded transition-all flex flex-col justify-between gap-3 ${
-                          isCompleted
-                            ? 'bg-[#E6FFFA] shadow-[3px_3px_0px_#000000]'
-                            : 'bg-white shadow-[3px_3px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px]'
-                        }`}
+                        style={{
+                          border: '2px solid #000000',
+                          boxShadow: '3px 3px 0px #000000',
+                          borderRadius: 6,
+                          padding: 16,
+                          backgroundColor: isCompleted ? '#E6FFFA' : '#FFFFFF',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          gap: 12,
+                        }}
                       >
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center justify-between gap-2">
                             <span
-                              className={`brutal-badge text-[10px] ${
-                                isCompleted
-                                  ? 'bg-[#00F59B] text-black'
-                                  : lesson.status === 'ready'
-                                  ? 'bg-[#E0F2FE] text-black'
-                                  : 'bg-neutral-100 text-black'
-                              }`}
+                              style={{
+                                backgroundColor: isCompleted ? '#00F59B' : lesson.status === 'ready' ? '#E0F2FE' : '#F3F4F6',
+                                color: '#000000',
+                                border: '1.5px solid #000000',
+                                borderRadius: 4,
+                                padding: '2px 8px',
+                                fontSize: 10,
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                              }}
                             >
-                              {isCompleted
-                                ? '✓ COMPLETED'
-                                : lesson.status === 'ready'
-                                ? 'READY'
-                                : 'STUB'}
+                              {isCompleted ? '✓ COMPLETED' : lesson.status === 'ready' ? 'READY' : 'STUB'}
                             </span>
 
                             {lesson.skippable && (
-                              <span className="text-xs font-black text-amber-700 bg-amber-100 border border-black px-1.5 py-0.5 rounded">
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  fontWeight: 900,
+                                  color: '#78350F',
+                                  backgroundColor: '#FEF3C7',
+                                  border: '1.5px solid #000000',
+                                  padding: '2px 6px',
+                                  borderRadius: 4,
+                                }}
+                              >
                                 skip ✓
                               </span>
                             )}
                           </div>
 
-                          <h3 className="font-black text-base text-black leading-snug">
+                          <h3 style={{ fontSize: 15, fontWeight: 900, color: '#000000', lineHeight: 1.3 }}>
                             {lesson.title}
                           </h3>
 
                           {lesson.objectives?.[0] && (
-                            <p className="text-xs text-neutral-700 font-semibold line-clamp-2">
+                            <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', lineHeight: 1.4 }} className="line-clamp-2">
                               {lesson.objectives[0]}
                             </p>
                           )}
                         </div>
 
                         {/* Action buttons */}
-                        <div className="pt-2 border-t border-black/10 flex items-center justify-between gap-2">
+                        <div
+                          style={{
+                            paddingTop: 10,
+                            borderTop: '1px solid #E5E7EB',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                          }}
+                        >
                           <button
                             type="button"
                             onClick={() => router.push(`/lesson/${lesson.id}`)}
                             className="brutal-btn brutal-btn-sm brutal-btn-primary flex-1"
+                            style={{ backgroundColor: '#FFE600', color: '#000000' }}
                           >
-                            Open Lesson 🚀
+                            <span style={{ color: '#000000', fontWeight: 900 }}>Open Lesson 🚀</span>
                           </button>
 
                           {isCompleted && (
                             <button
                               type="button"
                               onClick={() => router.push(`/quiz/${lesson.id}`)}
-                              className="brutal-btn brutal-btn-sm bg-white"
+                              className="brutal-btn brutal-btn-sm brutal-btn-white"
+                              style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                               title="Re-take Quiz"
                             >
-                              Quiz ⏱️
+                              <span style={{ color: '#000000', fontWeight: 900 }}>Quiz ⏱️</span>
                             </button>
                           )}
                         </div>
@@ -318,16 +504,27 @@ export default function RoadmapPage() {
           })}
         </div>
       ) : (
-        /* ── Mode 2: Roadmap Graph View (SVG DAG with all node invariants) ── */
-        <div className="brutal-card p-4 sm:p-6 bg-white flex flex-col gap-3 min-h-[550px]">
-          <div className="flex items-center justify-between pb-3 border-b-2 border-black">
+        /* ── Mode 2: Graph View (SVG DAG with all node invariants for tests) ─ */
+        <div
+          className="brutal-card p-4 sm:p-6 bg-white flex flex-col gap-3"
+          style={{
+            border: '3px solid #000000',
+            boxShadow: '4px 4px 0px #000000',
+            borderRadius: 8,
+            minHeight: 550,
+          }}
+        >
+          <div
+            className="flex items-center justify-between pb-3"
+            style={{ borderBottom: '2px solid #000000' }}
+          >
             <div className="flex items-center gap-2">
-              <span className="text-lg">🌿</span>
-              <h2 className="font-black text-base sm:text-lg text-black">
+              <span style={{ fontSize: 18 }}>🌿</span>
+              <h2 style={{ fontSize: 16, fontWeight: 900, color: '#000000' }}>
                 Interactive Curriculum Dependency Graph (DAG)
               </h2>
             </div>
-            <span className="text-xs font-bold text-neutral-600">
+            <span style={{ fontSize: 12, fontWeight: 800, color: '#525252' }}>
               Drag to pan • Click node to inspect
             </span>
           </div>
@@ -345,25 +542,58 @@ export default function RoadmapPage() {
 
       {/* ── 5. Capstone Project Milestone Card (When present) ─────────────── */}
       {course.capstone && (
-        <div className="brutal-card p-6 bg-[#EDE9FE] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div
+          style={{
+            backgroundColor: '#DDD6FE',
+            border: '3px solid #000000',
+            boxShadow: '4px 4px 0px #000000',
+            borderRadius: 8,
+            padding: 24,
+          }}
+          className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        >
           <div className="flex flex-col gap-1.5 max-w-xl">
             <div className="flex items-center gap-2">
-              <span className="text-xl">🏆</span>
-              <span className="brutal-badge bg-black text-white">CAPSTONE MILESTONE</span>
+              <span style={{ fontSize: 20 }}>🏆</span>
+              <span
+                style={{
+                  backgroundColor: '#000000',
+                  color: '#FFFFFF',
+                  border: '1.5px solid #000000',
+                  padding: '2px 8px',
+                  borderRadius: 4,
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                CAPSTONE MILESTONE
+              </span>
             </div>
-            <h3 className="text-xl font-black text-black">
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#000000' }}>
               {course.capstone.title}
             </h3>
-            <p className="text-xs sm:text-sm font-semibold text-neutral-800 leading-relaxed">
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#1F2937', lineHeight: 1.5 }}>
               {course.capstone.description}
             </p>
           </div>
 
           <div className="flex flex-col items-end gap-1.5 shrink-0">
-            <span className="text-xs font-black uppercase text-neutral-600">
-              Evaluation Criteria
+            <span style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: '#4B5563' }}>
+              Deliverable Target
             </span>
-            <span className="text-xs font-bold bg-white border-2 border-black px-3 py-1.5 rounded shadow-[2px_2px_0px_#000000]">
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 900,
+                backgroundColor: '#FFFFFF',
+                border: '2px solid #000000',
+                boxShadow: '2px 2px 0px #000000',
+                padding: '6px 12px',
+                borderRadius: 4,
+                color: '#000000',
+              }}
+            >
               {course.capstone.deliverable || 'Verified Working Implementation'}
             </span>
           </div>
@@ -372,51 +602,93 @@ export default function RoadmapPage() {
 
       {/* ── 6. Adaptive Changelog Card (Real updates from store) ──────────── */}
       {course.changelog && course.changelog.length > 0 && (
-        <div className="brutal-card p-5 bg-white flex flex-col gap-3">
-          <div className="flex items-center justify-between pb-2 border-b-2 border-black">
+        <div
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '3px solid #000000',
+            boxShadow: '4px 4px 0px #000000',
+            borderRadius: 8,
+            padding: 20,
+          }}
+          className="flex flex-col gap-3"
+        >
+          <div
+            className="flex items-center justify-between pb-2"
+            style={{ borderBottom: '2px solid #000000' }}
+          >
             <div className="flex items-center gap-2">
-              <span className="text-base">⚡</span>
-              <h3 className="font-black text-sm uppercase tracking-wider text-black">
+              <span style={{ fontSize: 16 }}>⚡</span>
+              <h3 style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#000000' }}>
                 Adaptive Changelog ({course.changelog.length} updates)
               </h3>
             </div>
-            <span className="text-xs font-bold text-neutral-500">Live Course Adaptation</span>
+            <span style={{ fontSize: 12, fontWeight: 800, color: '#525252' }}>Live Course Adaptation</span>
           </div>
 
           <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
             {course.changelog.slice().reverse().map((entry) => (
               <div
                 key={entry.id}
-                className="p-3 border-2 border-black rounded bg-[#FAF8F5] flex flex-col gap-0.5 text-xs font-semibold"
+                style={{
+                  padding: 12,
+                  border: '2px solid #000000',
+                  borderRadius: 4,
+                  backgroundColor: '#FAF8F5',
+                }}
+                className="flex flex-col gap-0.5 text-xs font-bold"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-black text-black">{entry.summary}</span>
-                  <span className="text-[10px] text-neutral-500">
+                  <span style={{ fontWeight: 900, color: '#000000' }}>{entry.summary}</span>
+                  <span style={{ fontSize: 10, color: '#6B7280' }}>
                     {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
-                <p className="text-[11px] text-neutral-700">{entry.reason}</p>
+                <p style={{ fontSize: 11, color: '#374151', margin: 0 }}>{entry.reason}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* ── 7. Slide-Over Lesson Detail Drawer ─────────────────────────────── */}
+      {/* ── 7. Slide-Over Lesson Detail Modal ──────────────────────────────── */}
       {selectedLesson && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-          <div className="w-full max-w-lg brutal-card bg-white p-6 flex flex-col gap-4">
-            <div className="flex items-start justify-between pb-3 border-b-2 border-black">
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              border: '3px solid #000000',
+              boxShadow: '6px 6px 0px #000000',
+              borderRadius: 8,
+              padding: 24,
+              width: '100%',
+              maxWidth: 480,
+            }}
+            className="flex flex-col gap-4"
+          >
+            <div
+              className="flex items-start justify-between pb-3"
+              style={{ borderBottom: '2px solid #000000' }}
+            >
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500">
+                <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', color: '#6B7280' }}>
                   {course.modules.find((m) => m.id === selectedLesson.moduleID)?.title}
                 </span>
-                <h2 className="font-black text-xl text-black mt-0.5">
+                <h2 style={{ fontSize: 20, fontWeight: 900, color: '#000000', marginTop: 2 }}>
                   {selectedLesson.title}
                 </h2>
               </div>
               <button
-                className="w-8 h-8 rounded border-2 border-black bg-white hover:bg-black hover:text-white font-black text-sm flex items-center justify-center cursor-pointer transition-colors"
+                style={{
+                  width: 32,
+                  height: 32,
+                  border: '2px solid #000000',
+                  backgroundColor: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  borderRadius: 4,
+                }}
+                className="flex items-center justify-center"
                 onClick={() => setSelectedID(null)}
               >
                 ✕
@@ -426,26 +698,35 @@ export default function RoadmapPage() {
             <div className="flex-1 overflow-y-auto py-2 flex flex-col gap-3 max-h-[60vh]">
               {/* Status pills */}
               <div className="flex flex-wrap gap-2">
-                <span className="brutal-badge bg-[#E0F2FE]">
+                <span className="brutal-badge" style={{ backgroundColor: '#E0F2FE' }}>
                   {selectedLesson.status === 'ready' ? '✓ Ready' : '◉ Stub'}
                 </span>
-                <span className="brutal-badge bg-white">
+                <span className="brutal-badge" style={{ backgroundColor: '#FFFFFF' }}>
                   {selectedLesson.confidence} confidence
                 </span>
                 {learner.completedLessonIDs.includes(selectedLesson.id) && (
-                  <span className="brutal-badge bg-[#00F59B]">✓ Completed</span>
+                  <span className="brutal-badge" style={{ backgroundColor: '#00F59B' }}>
+                    ✓ Completed
+                  </span>
                 )}
               </div>
 
               {/* Objectives */}
-              <div className="p-4 border-2 border-black rounded bg-[#F8F9FA]">
-                <span className="text-xs font-black uppercase tracking-wider text-black block mb-2">
+              <div
+                style={{
+                  border: '2px solid #000000',
+                  borderRadius: 6,
+                  padding: 16,
+                  backgroundColor: '#F8F9FA',
+                }}
+              >
+                <span style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: '#000000', display: 'block', marginBottom: 8 }}>
                   Learning Objectives
                 </span>
-                <ul className="flex flex-col gap-1.5 text-xs text-neutral-800 font-bold">
+                <ul className="flex flex-col gap-1.5 text-xs font-bold text-black" style={{ paddingLeft: 0, margin: 0, listStyle: 'none' }}>
                   {selectedLesson.objectives.map((obj, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="text-black">•</span>
+                      <span>•</span>
                       <span>{obj}</span>
                     </li>
                   ))}
@@ -454,20 +735,25 @@ export default function RoadmapPage() {
             </div>
 
             {/* Action buttons */}
-            <div className="pt-3 border-t-2 border-black flex flex-col gap-2">
+            <div
+              className="pt-3 flex flex-col gap-2"
+              style={{ borderTop: '2px solid #000000' }}
+            >
               <button
                 id={`open-lesson-${selectedLesson.id}`}
                 className="brutal-btn brutal-btn-primary w-full"
+                style={{ backgroundColor: '#FFE600', color: '#000000' }}
                 onClick={() => router.push(`/lesson/${selectedLesson.id}`)}
               >
-                Open Lesson 🚀
+                <span style={{ color: '#000000', fontWeight: 900 }}>Open Lesson 🚀</span>
               </button>
               {learner.completedLessonIDs.includes(selectedLesson.id) && (
                 <button
-                  className="brutal-btn bg-white w-full"
+                  className="brutal-btn brutal-btn-white w-full"
+                  style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                   onClick={() => router.push(`/quiz/${selectedLesson.id}`)}
                 >
-                  Re-take Quiz ⏱️
+                  <span style={{ color: '#000000', fontWeight: 900 }}>Re-take Quiz ⏱️</span>
                 </button>
               )}
             </div>

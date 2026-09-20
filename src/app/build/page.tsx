@@ -154,17 +154,42 @@ export default function BuildPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] p-6">
-        <div className="w-full max-w-md bg-white rounded-3xl p-8 text-center shadow-sm border border-[#FEE2E2]">
-          <div className="w-14 h-14 rounded-2xl bg-[#FEE2E2] text-2xl flex items-center justify-center mx-auto mb-4">
+        <div className="w-full max-w-md brutal-card p-8 text-center bg-white">
+          <div
+            style={{
+              width: 52,
+              height: 52,
+              backgroundColor: '#FF5A36',
+              border: '2px solid #000000',
+              boxShadow: '2px 2px 0px #000000',
+              borderRadius: 6,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 24,
+              margin: '0 auto 16px',
+            }}
+          >
             ⚠️
           </div>
-          <h2 className="text-xl font-bold text-[#0F1117] mb-2">Generation encountered an issue</h2>
-          <p className="text-xs text-[#6B7280] mb-6 leading-relaxed bg-[#FFF5F5] p-3 rounded-xl border border-[#FCDEDE]">
+          <h2 className="text-xl font-black text-black mb-2">Generation encountered an issue</h2>
+          <p
+            style={{
+              backgroundColor: '#FEE2E2',
+              border: '2px solid #000000',
+              borderRadius: 4,
+              padding: '12px',
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#000000',
+              marginBottom: 20,
+            }}
+          >
             {error}
           </p>
           <button
             type="button"
-            className="w-full py-3 rounded-xl bg-[#0F1117] text-white text-sm font-semibold hover:bg-[#232733] transition-all cursor-pointer shadow-xs"
+            className="w-full brutal-btn brutal-btn-dark"
             onClick={() => router.push('/goal')}
           >
             ← Return to Goal Planner
@@ -179,30 +204,23 @@ export default function BuildPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E6F5F8] text-[#0A5265] text-xs font-semibold mb-3 border border-[#C5EBF1]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 border-2 border-black bg-[#FFE600] shadow-[2px_2px_0px_#000000] text-xs font-black uppercase mb-3 rounded">
             <span>🌱</span>
             <span>Adaptive Engine</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-[#0F1117] tracking-tight mb-2">
-            Building your plan{dots}
+          <h1 className="text-2xl font-black text-black tracking-tight mb-2">
+            Building your course{dots}
           </h1>
           {goalSummary && (
-            <p className="text-xs text-[#6B7280] max-w-sm mx-auto line-clamp-2 bg-white/70 px-3 py-1.5 rounded-full border border-[#E5E7EB]">
-              🎯 &ldquo;{goalSummary}&rdquo;
-            </p>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-black bg-white shadow-[2px_2px_0px_#000000] rounded text-xs font-bold text-black max-w-sm mx-auto">
+              <span>🎯</span>
+              <span className="truncate">&ldquo;{goalSummary}&rdquo;</span>
+            </div>
           )}
         </div>
 
         {/* Stepper Card */}
-        <div
-          className="p-6 shadow-sm divide-y divide-[#F3F4F6]"
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: 28,
-            border: '1px solid #EBECEF',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
-          }}
-        >
+        <div className="brutal-card p-6 bg-white divide-y-2 divide-black">
           {STEPS.map((step, i) => {
             const state = i < currentStep ? 'done' : i === currentStep ? 'active' : 'pending';
             return (
@@ -212,11 +230,12 @@ export default function BuildPage() {
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="build-step-icon w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+                    className="build-step-icon w-8 h-8 rounded flex items-center justify-center text-xs font-black transition-all"
                     style={{
-                      backgroundColor: state === 'done' ? '#D4F6ED' : state === 'active' ? '#F2E7FE' : '#F4F5F7',
-                      color: state === 'done' ? '#064E3B' : state === 'active' ? '#581C87' : '#9CA3AF',
-                      border: state === 'done' ? '1px solid #A7F3D0' : state === 'active' ? '1px solid #D8B4FE' : '1px solid #E5E7EB',
+                      backgroundColor: state === 'done' ? '#00F59B' : state === 'active' ? '#FFE600' : '#FFFFFF',
+                      color: '#000000',
+                      border: '2px solid #000000',
+                      boxShadow: '2px 2px 0px #000000',
                     }}
                   >
                     {state === 'done' ? '✓' : state === 'active' ? '◉' : i + 1}
@@ -224,8 +243,8 @@ export default function BuildPage() {
                   <span
                     className="text-sm"
                     style={{
-                      color: state === 'pending' ? '#9CA3AF' : '#0F1117',
-                      fontWeight: state === 'active' ? 800 : state === 'done' ? 700 : 500,
+                      color: state === 'pending' ? '#6B7280' : '#000000',
+                      fontWeight: state === 'active' ? 900 : state === 'done' ? 800 : 600,
                     }}
                   >
                     {step.label}
@@ -236,18 +255,18 @@ export default function BuildPage() {
                   <span
                     className="w-4 h-4 rounded-full animate-spin"
                     style={{
-                      border: '2.5px solid #D8B4FE',
-                      borderTopColor: '#581C87',
+                      border: '3px solid #000000',
+                      borderTopColor: '#FFE600',
                     }}
                   />
                 )}
                 {state === 'done' && (
                   <span
-                    className="text-xs font-bold px-2.5 py-0.5"
+                    className="text-xs font-black px-2.5 py-0.5 border-2 border-black rounded"
                     style={{
-                      backgroundColor: '#D4F6ED',
-                      color: '#064E3B',
-                      borderRadius: 9999,
+                      backgroundColor: '#00F59B',
+                      color: '#000000',
+                      boxShadow: '1px 1px 0px #000000',
                     }}
                   >
                     Done
@@ -259,7 +278,7 @@ export default function BuildPage() {
         </div>
 
         {/* Footer info */}
-        <div className="text-[11px] text-[#9CA3AF] text-center mt-5 flex items-center justify-center gap-1.5">
+        <div className="text-xs font-bold text-neutral-600 text-center mt-5 flex items-center justify-center gap-1.5">
           <span>⚡</span>
           <span>Generating concepts, curriculum hierarchy & resources in real-time</span>
         </div>
