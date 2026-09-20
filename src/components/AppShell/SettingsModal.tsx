@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { medicalCourseFixture, pcbCourseFixture } from '@/lib/fixture';
 import { ApiKeyStore } from '@/lib/llmClient';
@@ -11,6 +12,7 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+  const router = useRouter();
   const { setCourse, reset } = useStore();
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [savedKey, setSavedKey] = useState(ApiKeyStore.get() || '');
@@ -137,7 +139,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               if (confirm('Reset your current course progress and return to goal intake?')) {
                 reset();
                 onClose();
-                window.location.href = '/goal';
+                router.push('/goal');
               }
             }}
             className="brutal-btn brutal-btn-sm bg-red-100 hover:bg-red-500 hover:text-white border-2 border-black text-red-900 font-black"

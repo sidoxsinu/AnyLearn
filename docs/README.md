@@ -1,19 +1,20 @@
 # AnyLearn — Documentation Index
 
 > Tell us what you want to learn. We build the learning environment — then keep repairing it around you.
-> **Native Web app (React/Next.js) · Demoed on VS Code Web Browser (Desktop Web Browser)**
+> **Modern Web App (Next.js 16 / React 19 / TypeScript / Neo-Brutalism)**
 
 | File | Purpose |
 |---|---|
-| [PRD.md](PRD.md) | Vision, problem, users, scope, requirements, acceptance criteria, metrics |
-| [COMPETITIVE_ANALYSIS.md](COMPETITIVE_ANALYSIS.md) | Honest comparison with ChatGPT, Claude, Gemini, Perplexity, YouTube, Coursera/Udemy, LMS |
-| [PRODUCT_DIFFERENTIATION.md](PRODUCT_DIFFERENTIATION.md) | The 4 defensible moats and how to demo each on Browser |
-| [AI.md](AI.md) | AI pipeline, TypeScript schemas, patch engine, trust layer |
-| [PROMPTS.md](PROMPTS.md) | Production prompts for every AI stage |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | TypeScript/React/Next.js stack, VS Code project layout, data model, API, mastery engine, build plan |
-| [UX.md](UX.md) | Web screens, React/Next.js interaction design, animations, visual direction |
-| [JUDGE_DEFENSE.md](JUDGE_DEFENSE.md) | "Why AnyLearn?" — 20 hard questions with product-based answers |
-| [DEMO.md](DEMO.md) | 4:30 Browser demo script, failure playbook, rehearsal checklist |
-| [SETUP.md](SETUP.md) | VS Code install, .env.local API keys, run on Browser, safe-mode fixtures |
+| [PRD.md](PRD.md) | Vision, problem statement, user personas, scope, requirements, and acceptance criteria |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Next.js 16 stack, project layout, state management, Bayesian mastery engine, and patch architecture |
+| [AI.md](AI.md) | AI pipeline, structured JSON schemas, dual-model verify loop, and trust layer |
+| [PROMPTS.md](PROMPTS.md) | Production system prompts with schema enforcement for every generation stage |
+| [UX.md](UX.md) | Neo-Brutalist UI specification, screen flows, design tokens, and interaction guidelines |
+| [SETUP.md](SETUP.md) | Installation, local development server, automated testing, and demo mode fixtures |
+| [DEMO.md](DEMO.md) | End-to-end demonstration script, user walkthrough, and fallback playbook |
+| [PRODUCT_DIFFERENTIATION.md](PRODUCT_DIFFERENTIATION.md) | The 4 defensible product moats and interactive feature proofs |
+| [COMPETITIVE_ANALYSIS.md](COMPETITIVE_ANALYSIS.md) | Systematic comparison with ChatGPT, Claude, Gemini, Perplexity, Coursera, and traditional LMS |
+| [JUDGE_DEFENSE.md](JUDGE_DEFENSE.md) | Architectural defense & FAQ addressing 20 technical and design questions |
+| [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) | In-depth engineering guide, state machine invariants, and test conventions |
 
-**One-line principle:** The AI is the engine. The product is the learning system around it.
+**Core Principle:** The AI is the proposal engine. The product is the deterministic learning system around it.

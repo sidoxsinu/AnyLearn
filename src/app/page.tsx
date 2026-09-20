@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
-import { ApiKeyStore } from '@/lib/llmClient';
 
 export default function RootPage() {
   const router = useRouter();

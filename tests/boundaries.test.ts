@@ -4,7 +4,7 @@ import { applyPatch, PatchEngineError } from '../src/lib/patchEngine';
 import { Mastery } from '../src/lib/mastery';
 import { pcbCourseFixture } from '../src/lib/fixture';
 import { defaultLearnerState } from '../src/lib/models';
-import type { Course, LearnerState, RoadmapPatch, Concept, Lesson, Block } from '../src/lib/models';
+import type { Course, RoadmapPatch, Concept, Lesson } from '../src/lib/models';
 
 function createFreshCourse(): Course {
   return JSON.parse(JSON.stringify(pcbCourseFixture));
@@ -403,9 +403,9 @@ test('Boundary & Edge Cases — Tier 2 Test Suite', async (t) => {
     assert.equal(typeof window, 'undefined');
     // Calling store functions does not crash
     const dummyStorage = {
-      getItem: (_key: string) => null,
-      setItem: (_key: string, _value: string) => {},
-      removeItem: (_key: string) => {},
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
     };
     assert.equal(dummyStorage.getItem('anylearn-state'), null);
     assert.doesNotThrow(() => dummyStorage.setItem('key', 'val'));

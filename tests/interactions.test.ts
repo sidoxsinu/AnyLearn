@@ -35,6 +35,7 @@ test('Interactions & UI Logic — Tier 3 Test Suite', async (t) => {
     );
     assert.ok(htmlWithFlag.includes('Flag this block'));
     assert.ok(htmlWithFlag.includes('⚑'));
+    assert.equal(flaggedID, '');
   });
 
   await t.test('TC-INT-02: BlockRenderer renders workedExample block with steps and why explanations', () => {

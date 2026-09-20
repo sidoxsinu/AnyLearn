@@ -30,6 +30,116 @@ AnyLearn solves these challenges by combining generative curriculum intelligence
 
 ---
 
+## System Architecture & Graphs
+
+### 1. End-to-End System Data Flow
+```mermaid
+flowchart TD
+    subgraph INTAKE ["1. Goal Intake & Calibration"]
+        A["Learner Goal: e.g. PCB Design"] --> B["Milestone Artifact & Hours/Week"]
+        B --> C["Prompt Assembly (Schema Enforced)"]
+    end
+
+    subgraph GENERATION ["2. Generative Proposal Layer"]
+        C --> D["Gemini Flash API"]
+        D --> E["Structured JSON Proposal"]
+    end
+
+    subgraph ENGINE ["3. Deterministic Safety Engine"]
+        E --> F["Zod & Type Boundary Audit"]
+        F --> G["Kahn's DAG Topological Sort"]
+        G --> H{"Acyclic?"}
+        H -- "Cycle Detected" --> I["Auto-Repair: Drop Low-Confidence Edge"]
+        I --> G
+        H -- "Valid DAG" --> J["Course Model Instantiated"]
+    end
+
+    subgraph CLIENT ["4. State & UI Execution"]
+        J --> K["Zustand Store (localStorage)"]
+        K --> L["Living Roadmap & SVG DAG"]
+        L --> M["Modular Block Lessons"]
+        M --> N["Formative Quizzes (Misconception Tags)"]
+    end
+
+    subgraph ADAPT ["5. Continuous Self-Healing"]
+        N --> O["Bayesian Knowledge Tracing (p_new)"]
+        O --> P{"Mastery < 0.5 or Misconception >= 2x?"}
+        P -- "Yes" --> Q["Patch Engine: insertLesson / replaceBlock"]
+        Q --> R["Audit Verifier & Emit Inverse (Undo)"]
+        R --> G
+        P -- "No" --> S["Advance to Next Prerequisite Node"]
+        S --> L
+    end
+```
+
+### 2. Concept Dependency Graph (DAG) Structure
+```mermaid
+graph LR
+    subgraph M1 ["Module 1: Electronics Fundamentals"]
+        C1(["Ohm's Law & Power"]) --> C2(["Passive Components"])
+        C2 --> C3(["Voltage Dividers"])
+    end
+
+    subgraph M2 ["Module 2: Schematic Capture"]
+        C3 --> C4(["Symbol Libraries"])
+        C4 --> C5(["Netlists & Buses"])
+    end
+
+    subgraph M3 ["Module 3: Board Layout & Routing"]
+        C3 --> C6(["Ground Planes & Return Paths*"])
+        C5 --> C7(["Footprint Assignment"])
+        C6 --> C8(["Trace Impedance & Routing"])
+        C7 --> C8
+    end
+
+    subgraph M4 ["Module 4: Fabrication & DRC"]
+        C8 --> C9(["Design Rule Checking (DRC)"])
+        C9 --> C10(["Gerber Export & Fab Review"])
+    end
+
+    classDef completed fill:#00F59B,stroke:#000000,stroke-width:2px,color:#000000;
+    classDef active fill:#FFE600,stroke:#000000,stroke-width:2px,color:#000000;
+    classDef adapted fill:#FF5A36,stroke:#000000,stroke-width:2px,color:#FFFFFF;
+    classDef normal fill:#FFFFFF,stroke:#000000,stroke-width:2px,color:#000000;
+
+    class C1,C2,C3 completed;
+    class C4,C5 active;
+    class C6 adapted;
+    class C7,C8,C9,C10 normal;
+```
+*(Legend: 🟩 **Completed Node** · 🟨 **Active Focus** · 🟥 **Adaptive Remedial Node Inserted by Engine** · ⬜ **Upcoming Prerequisite**)*
+
+### 3. Self-Healing & Diagnostic Verification Loop
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Learner
+    participant UI as Lesson Workspace / Report Page
+    participant Store as Zustand State Store
+    participant Diagnoser as AI Diagnoser (Root Cause)
+    participant Verifier as AI Verifier (Independent Audit)
+    participant PatchEng as Deterministic PatchEngine
+
+    Learner->>UI: Flags confusing block / reports missing prerequisite
+    UI->>Store: Assembles context bundle (Lesson, Concept DAG, Mastery)
+    Store->>Diagnoser: Requests FixPlan with schema bounds
+    Diagnoser-->>Store: Returns proposed patch (max 3 ops)
+    Store->>Verifier: Audits claims & verifies pedagogical safety
+    alt Fix Verified
+        Verifier-->>Store: Verdict: ACCEPTED
+        Store->>PatchEng: applyPatch(patch)
+        PatchEng->>PatchEng: Validates DAG & Generates Inverse Patch
+        PatchEng-->>Store: Course version incremented (v+1)
+        Store-->>UI: Live update applied with Undo option
+        UI-->>Learner: Course healed in ~15s (Notification Toast)
+    else Fix Rejected
+        Verifier-->>Store: Verdict: REJECTED (Issues Flagged)
+        Store-->>UI: Marked for human review; current state preserved
+    end
+```
+
+---
+
 ## Features
 
 * **🎯 Adaptive Goal & Calibration Intake:** Define any learning target, select a concrete milestone artifact (e.g., *Working Prototype*, *Deep Understanding*), and set weekly commitment hours to generate a tailored curriculum.

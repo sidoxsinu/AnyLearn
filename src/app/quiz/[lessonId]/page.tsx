@@ -157,8 +157,13 @@ export default function QuizPage() {
 
   const shuffledOptions = useMemo(() => {
     if (!q) return [];
-    return [...q.options].sort(() => Math.random() - 0.5);
-  }, [q?.id]);
+    // Deterministic option order based on question and option text to ensure render purity
+    return [...q.options].sort((a, b) => {
+      const charA = (a.text.charCodeAt(0) || 0) + (q.id.charCodeAt(0) || 0);
+      const charB = (b.text.charCodeAt(0) || 0) + (q.id.charCodeAt(0) || 0);
+      return (charA % 7) - (charB % 7);
+    });
+  }, [q]);
 
   if (!course || !lesson || questions.length === 0) {
     return (

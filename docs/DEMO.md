@@ -1,67 +1,43 @@
-# Demo Script (4:30) — Web Browser
+# AnyLearn — Live Demonstration Guide (4:30 Walkthrough)
 
-## Choice of topic: **"Learn PCB design from zero and design my own PCB."**
-Why it works: (1) hidden prerequisites (electronics basics, schematic vs. layout, ground planes) make *adaptation* meaningful; (2) technical accuracy matters, so *verification* has stakes; (3) visual/tool-based resources show *grounding*; (4) has a tangible end artifact.
-Backup topics (pre-cached preview mode): `"Prompt engineering for RAG apps"`, `"Beekeeping basics"`.
+## 1. Demo Overview
 
----
+This walkthrough demonstrates how AnyLearn transforms an ambitious learning goal into a living, adaptive learning path with continuous real-time self-healing.
 
-## Pre-demo setup (10 min before)
-
-1. **Start Dev Server:** In terminal, run `npm run dev`.
-2. **Open Browser:** Open `http://localhost:3000` in Chrome/Safari. Let it fully boot.
-3. **Set scheme to Preview Mode:** When the API Key modal appears, click **"Preview with PCB Design demo"**. Confirm the fixture loads (roadmap should appear instantly).
-4. **Switch to Live Mode** for the actual demo: Clear your `localStorage` (Application tab in DevTools), refresh, and enter your real Gemini API key. Have preview mode as the fallback.
-5. **Mirror Browser to presentation screen:** Ensure your web browser is visible. Zoom in to 110-125% if needed for legibility.
-6. **Pre-plan two "stumbles":** on quiz Q3–Q4 tap the ground-plane misconception options.
-7. **Stage the Report text:** `"I don't understand what a ground plane is or why it matters."` (type: missing prerequisite).
-8. **Hotspot ready:** phone hotspot as Wi-Fi backup. Live mode tested on venue Wi-Fi at least once.
+- **Primary Demo Track**: *Medical Terminology & Clinical Basics* (pre-loaded out-of-the-box for instant exploration).
+- **Secondary Demo Track**: *PCB Design from Zero* (available via Settings modal).
+- **Live Generation Track**: Custom goal synthesis using client-side Gemini API keys.
 
 ---
 
-## Timeline
+## 2. Pre-Demo Checklist (2 Minutes Before)
 
-| Time | Screen | Say | Shows |
-|---|---|---|---|
-| 0:00–0:25 | Browser home / landing | "Ask ChatGPT how to learn PCB design and you get a great essay. Then *you* have to run the course. AnyLearn builds the course *and runs the loop around you*." | Problem framing |
-| 0:25–0:55 | Goal Intake | Type the goal. Tap chips: *design & order my first board*, *5 h/week*. Tap calibration toggle; answer 5 questions quickly (know Ohm's law; unsure on ground planes). | Personalization inputs |
-| 0:55–1:30 | Build Screen → Roadmap | "Watch — concepts stream in, prerequisites wire up, modules form." Nodes spring onto the canvas. "Notice *Basic circuits* is marked **Skippable — you know this**." | Moat 1 + diagnostic |
-| 1:30–2:10 | Lesson workspace | Tap "Schematics vs. layout" node → navigate to lesson. Scroll through blocks: worked example stepper, inline checkpoint, **embedded YouTube video with creator credit and 'why this fits'**. "Every link is real and link-checked; the model never writes URLs." | Moat 4 |
-| 2:10–2:50 | Quiz | Tap through 5 questions; deliberately miss the two ground-plane items. After each wrong answer: misconception label animates in — "Common confusion: *treats ground as just another trace*." | Misconception tagging |
-| 2:50–3:20 | Roadmap — Adapt | Banner appears: **"Roadmap updated."** Tap it → `DiffView` sheet: + "Ground planes & return paths (10 min)" node springs into the canvas; downstream lesson gets a prerequisite badge; mastery ring turns amber. "It cites my evidence — *you chose X twice*." | Moat 2 |
-| 3:20–4:05 | Report / Fix | Open "Routing your first board" lesson → tap **Report / Fix ⚑** in footer. Choose *missing prerequisite* chip + type the staged text. Show the result scroll: **Diagnosis → Before/After diff → Verifier ✅ (claims checked: …) → Also updated: 1 quiz question → Changelog entry**. Tap **Undo** → node disappears. Tap **Redo** → node springs back. | Moat 3 |
-| 4:05–4:30 | Capstone + wrap | Scroll to Capstone card. "One sentence in. A living course out — built, adapted, repaired. **The AI is the engine; the product is the learning system.**" | Close |
+1. **Start Local Server**: In your terminal, run `npm run dev`.
+2. **Open Browser**: Navigate to `http://localhost:3000`. The app will redirect to `/roadmap` with the pre-loaded Medical Terminology course.
+3. **Verify DevTools**: Open browser console to ensure zero errors and clean React 19 hydration.
+4. **Zoom / Legibility**: Set browser zoom to 100% or 110% for clear projection of Neo-Brutalist cards and borders.
 
 ---
 
-## Optional 15-second closer
-Show a real ChatGPT/Claude screenshot of the same prompt (a long text answer, no state, no map). Say: "Same model class. Different product." Mirror the Browser alongside it for contrast.
+## 3. Demonstration Script & Timeline
+
+| Time | Screen & Focus | Narrative & Actions | Key Takeaway Demonstrated |
+|:---|:---|:---|:---|
+| **0:00 – 0:30** | **Roadmap Dashboard** (`/roadmap`) | "Traditional online courses are static playlists, while AI chatbots are isolated conversations. AnyLearn builds a persistent, adaptive learning system around ONE learner and ONE goal." Point out the **Electric Yellow Hero Card**, the **Live Progress Badge**, and the **4-stat card row**. | Clean Neo-Brutalist design, zero synthetic mock data, and live store metrics. |
+| **0:30 – 1:15** | **Curriculum List & DAG Graph** (`/roadmap`) | Toggle from **List View** to **SVG Graph View**. Show how lessons form an acyclic dependency graph with module clusters and prerequisite edges. Point out the `skip ✓` indicator on foundational concepts that were marked skippable. | Acyclic graph invariants (`dagValidator.ts`) and clear visual progression. |
+| **1:15 – 2:00** | **Lesson Workspace** (`/lesson/med-1`) | Click **"Continue Learning →"** or **"Open Lesson ↗"**. Walk through the structured blocks: learning objectives, high-contrast text, step-by-step worked examples, and the interactive checkpoint card. Click **"Reveal Answer"** on the checkpoint. | Structured modular lessons (`BlockRenderer.tsx`) designed for deep comprehension, not chat wall-of-text. |
+| **2:00 – 2:50** | **Misconception Quiz** (`/quiz/med-1`) | Click **"Complete & Take Quiz →"**. Answer questions. Deliberately select a distractor option. Show the card turn red with the explicit misconception explanation tagged by the authoring model. Complete the quiz and highlight the updated concept mastery bars. | Formative assessment and Bayesian Knowledge Tracing (`mastery.ts`). |
+| **2:50 – 3:40** | **Adaptive Patch & Diagnosis** (`/report/med-1`) | From the lesson footer, click **"⚑ Report Issue"**. Select *Missing Prerequisite* or *Confusing Explanation*, enter a brief clarification request, and click **"Diagnose & Fix →"**. Explain how the dual-model pipeline diagnoses the issue, creates a patch, verifies the fix, and updates the course changelog. | Autonomous self-healing patch engine (`patchEngine.ts`) with undo capability. |
+| **3:40 – 4:15** | **Goal Intake & Custom Generation** (`/goal`) | Navigate to **"🎯 New Goal"**. Type a new learning ambition (e.g., *"Options pricing from scratch for quantitative finance"*). Show the milestone artifact selector and weekly commitment buttons. Explain how the adaptive engine decomposes goals into atomic concept DAGs. | Goal-oriented calibration and tailored scope control. |
+| **4:15 – 4:30** | **Summary & Conclusion** | "One sentence in. A living course out—built, adapted, and repaired around the learner. **The AI proposes; our engine disposes.**" | Deterministic safety, client-side privacy, and proven software engineering. |
 
 ---
 
-## If the judge names a topic
-Say: "Great — live." Clear `localStorage`, paste API key, and narrate the pipeline steps during generation (~15 s). If generation stalls > 25 s, switch: "Here's one I prepared" — clear `localStorage` and click Preview Mode. Never apologize; narrate.
+## 4. Contingency & Fallback Playbook
 
----
-
-## Failure playbook
-
-| Failure | Response |
-|---|---|
-| AI timeout / network error | Reload and click Preview Mode; keep narrating the pipeline |
-| Video embed blocked in iframe | Link card fallback is already built — show attribution + why |
-| Verifier returns fail verdict | Show the "needs review" state — a strength: "it doesn't ship unverified fixes" |
-| Browser crashes | Refresh page — `localStorage` persists state across launches |
-| Browser too small on projector | `⌘+` to zoom in the browser |
-| Next.js build fails | Ensure you ran `npm install` and are using Node 20+. The app runs fine on the dev server. |
-
----
-
-## Rehearsal checklist
-
-- [ ] Full run under 4:30 ×3
-- [ ] Offline safe-mode run (Wi-Fi off) using Preview Mode
-- [ ] Undo / Redo works correctly
-- [ ] All three moats named out loud at least once
-- [ ] Browser zoom level confirmed on presentation display
-- [ ] One teammate role-plays a hostile judge with the questions in [JUDGE_DEFENSE.md](JUDGE_DEFENSE.md)
+| Scenario | Contingency Action |
+|:---|:---|
+| **Network or Wi-Fi Disruption** | Rely entirely on the pre-bundled offline fixtures (*Medical Terminology* or *PCB Design*). Every core feature (roadmap, SVG graph, lesson reader, quiz runner, and mastery updates) operates 100% locally in browser memory with zero network dependencies. |
+| **API Key Missing or Expired** | Click the **⚙️ Settings** icon in the top right, select **"Load PCB Design Demo"** or **"Load Medical Basics Demo"**, and resume the demonstration without hesitation. |
+| **Accidental State Corruption** | In the Settings modal, click **"Reset Course & Learner State"** to restore pristine default data instantly. |
+| **Small Display / Projector** | The Neo-Brutalist layout uses pure CSS responsive grids (`.brutal-grid-4` to `.brutal-grid-2` to single column) and natural vertical scrolling, ensuring sharp visibility at any screen resolution. |

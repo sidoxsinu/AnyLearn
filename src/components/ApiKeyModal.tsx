@@ -10,15 +10,6 @@ interface ApiKeyModalProps {
   onReady: () => void;
 }
 
-const EXAMPLE_TOPICS = [
-  'PCB design from zero',
-  'Options pricing & trading',
-  'Rust programming',
-  'Machine learning fundamentals',
-  'Beekeeping for beginners',
-  'Japanese for travelers',
-];
-
 export function ApiKeyModal({ onReady }: ApiKeyModalProps) {
   const router = useRouter();
   const [key, setKey] = useState('');

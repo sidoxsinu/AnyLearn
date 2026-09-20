@@ -4,8 +4,7 @@ import { useStore } from '../src/lib/store';
 import { pcbCourseFixture } from '../src/lib/fixture';
 import { validateDAG } from '../src/lib/dagValidator';
 import { Mastery } from '../src/lib/mastery';
-import { defaultLearnerState } from '../src/lib/models';
-import type { Course, LearnerState, RoadmapPatch, Lesson } from '../src/lib/models';
+import type { Course, RoadmapPatch, Lesson } from '../src/lib/models';
 
 test('Real-World Workflows — Tier 4 Test Suite', async (t) => {
   t.beforeEach(() => {
